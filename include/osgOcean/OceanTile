@@ -39,7 +39,8 @@ namespace osgOcean
         float _spacing;                         /**< Vertex spacing. */
         float _maxDelta;                        /**< Max change in height between levels */
         float _averageHeight;                   /**< Average height (z) of vertices */
-        
+        float _minHeight;               
+		float _maxHeight;
     public:
         /** 
         * Default constructor.
@@ -53,6 +54,7 @@ namespace osgOcean
         * Data from the first row and column are copied into the last column and row.
         * Computes average height and normals of tile. Displacements are optional.
         */
+
         OceanTile( osg::FloatArray* heights, 
                    const unsigned int resolution, 
                    const float spacing,
@@ -121,7 +123,14 @@ namespace osgOcean
         inline const float& getAverageHeight(void) const{
             return _averageHeight;
         }
-
+		inline const float& getMinHeight()const
+		{
+			return _minHeight;
+		}
+		inline const float& getMaxHeight()const
+		{
+			return _maxHeight;
+		}
         float biLinearInterp(float x, float y ) const;
 
         osg::Vec3f normalBiLinearInterp(float x, float y ) const;

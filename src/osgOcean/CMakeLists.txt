@@ -62,10 +62,14 @@ SET( LIB_HEADERS
   ${HEADER_PATH}/WaterTrochoids
   ${HEADER_PATH}/Export
   ${HEADER_PATH}/Version
+  ${HEADER_PATH}/FlatRingOcean.h
 )
 
 # Adds headers to the "Header Files" group in visual studio
 SOURCE_GROUP( "Header Files" ${HEADER_PATH}/*.* )
+
+# Adds shaders to the "Shaders" group in visual studio
+SOURCE_GROUP( "Shaders" FILES ${SHADER_FILES} )
 
 ADD_DEFINITIONS(-DOSGOCEAN_LIBRARY)
 
@@ -94,6 +98,7 @@ ADD_LIBRARY(
   SiltEffect.cpp
   WaterTrochoids.cpp
   Version.cpp
+  FlatRingOcean.cpp
 )
 
 SET_TARGET_PROPERTIES(

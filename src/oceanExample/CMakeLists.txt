@@ -43,6 +43,8 @@ SET( EXAMPLE_SHADERS
   ${osgOcean_SOURCE_DIR}/resources/shaders/skydome.frag
 )
 
+# Adds shaders to the "Shaders" group in visual studio
+SOURCE_GROUP( "Shaders" FILES ${EXAMPLE_SHADERS} )
 INCLUDE_DIRECTORIES(
    ${LIB_HEADER_PATH}
    ${HEADER_PATH}

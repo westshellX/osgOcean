@@ -23,7 +23,8 @@
 #include <osgOcean/GodRays>
 #include <osgOcean/SiltEffect>
 #include <osgOcean/Cylinder>
-
+#include <osgOcean/FFTOceanSurface>
+#include <osgOcean/FlatRingOcean.h>
 #include <osg/Group>
 #include <osg/Camera>
 #include <osg/Texture2D>
@@ -34,6 +35,7 @@
 #include <osg/ClipNode>
 #include <osg/ClipPlane>
 #include <osgGA/GUIEventHandler>
+#include <osg/MatrixTransform>
 
 namespace osgOcean
 {
@@ -45,6 +47,8 @@ namespace osgOcean
     class OSGOCEAN_EXPORT OceanScene : public osg::Group
     {
     private:
+		bool _loadShaderFromFile;
+		osg::ref_ptr<FlatRingOceanGeode> _farOceanSurfaceGeode;
         osg::Matrixf _reflectionMatrix;
 
         osg::ref_ptr<OceanTechnique> _oceanSurface;
@@ -186,6 +190,17 @@ namespace osgOcean
         inline void enableReflections( bool enable ){
             _enableReflections = enable;
             _isDirty = true;
+
+			//2018_8_29
+			osg::ref_ptr<osgOcean::FFTOceanSurface> fftsurface=dynamic_cast<osgOcean::FFTOceanSurface*>(_oceanSurface.get());
+			if(fftsurface)
+			{
+				fftsurface->enableReflections(enable);
+			}
+			if(_farOceanSurfaceGeode.valid())
+			{
+				_farOceanSurfaceGeode->enableReflections(enable);
+			}
         }
 
         inline bool areReflectionsEnabled() const{
@@ -203,6 +218,13 @@ namespace osgOcean
         inline void enableRefractions( bool enable ){
             _enableRefractions = enable;
             _isDirty = true;
+
+			//2018_8_29
+			osg::ref_ptr<osgOcean::FFTOceanSurface> fftsurface=dynamic_cast<osgOcean::FFTOceanSurface*>(_oceanSurface.get());
+			if(fftsurface)
+			{
+				fftsurface->enableRefractions(enable);
+			}
         }
 
         inline bool areRefractionsEnabled() const{
@@ -280,7 +302,15 @@ namespace osgOcean
 
             _isDirty = true;
         }
+		inline void setLoadShaderFromFile(bool on)
+		{
+			if(_loadShaderFromFile==on)
+				return;
+			_loadShaderFromFile=on;
+			_defaultSceneShader = createDefaultSceneShader();
+			_isDirty=true;
 
+		}
         inline bool isUnderwaterDOFEnabled() const{
             return _enableDOF;
         }
@@ -424,6 +454,7 @@ namespace osgOcean
 
             _isDirty = true;
         }
+		void setFarOceanSurface(FlatRingOceanGeode* far);
 
         inline OceanTechnique* getOceanTechnique( void ) {
             return _oceanSurface.get();
@@ -446,7 +477,12 @@ namespace osgOcean
         }
 
         inline void setLightID( unsigned int id ){
-            _lightID = id;
+            if(_lightID == id)
+				return;
+			_lightID=id;
+			if(_farOceanSurfaceGeode.valid())
+				_farOceanSurfaceGeode->setLightID(id);
+			
             _isDirty = true;
         }
 

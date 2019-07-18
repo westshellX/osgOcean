@@ -31,7 +31,9 @@ OceanTile::OceanTile( void ):
     _numVertices  (0),
     _spacing      (0),
     _maxDelta     (0),
-    _averageHeight(0)
+    _averageHeight(0),
+	_minHeight(0),
+	_maxHeight(0)
 {}
 
 OceanTile::OceanTile( osg::FloatArray* heights, 
@@ -45,7 +47,9 @@ OceanTile::OceanTile( osg::FloatArray* heights,
     _vertices   ( new osg::Vec3Array ),
     _normals    ( new osg::Vec3Array(_numVertices) ),
     _spacing    ( spacing ),
-    _maxDelta   ( 0.f )
+    _maxDelta   ( 0.f ),
+	_minHeight(FLT_MAX),
+	_maxHeight(-FLT_MAX)
 {
     _vertices->reserve( _numVertices );
 
@@ -85,7 +89,10 @@ OceanTile::OceanTile( osg::FloatArray* heights,
             outFile << v.z() << std::endl;
 #endif
             sumHeights += v.z();
-
+			if(v.z()<_minHeight)
+				_minHeight=v.z();
+			if(v.z()>_maxHeight)
+				_maxHeight=v.z();
             _vertices->push_back( v );
         }
     }
@@ -154,7 +161,9 @@ OceanTile::OceanTile( const OceanTile& copy ):
     _numVertices    ( copy._numVertices ),
     _spacing        ( copy._spacing ),
     _maxDelta       ( copy._maxDelta ),
-    _averageHeight  ( copy._averageHeight )
+    _averageHeight  ( copy._averageHeight ),
+	_minHeight      ( copy._minHeight),
+	_maxHeight      (copy._maxHeight)
 {
 
 }
@@ -176,6 +185,8 @@ OceanTile& OceanTile::operator=(const OceanTile& rhs)
         _spacing       = rhs._spacing;
         _maxDelta      = rhs._maxDelta;
         _averageHeight = rhs._averageHeight;
+		_minHeight=rhs._minHeight;
+		_maxHeight=rhs._maxHeight;
     }
     return *this;
 }

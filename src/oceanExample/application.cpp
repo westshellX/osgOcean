@@ -343,6 +343,7 @@ public:
                 // Make the ocean surface track with the main camera position, giving the illusion
                 // of an endless ocean surface.
                 _oceanSurface->enableEndlessOcean(true);
+				_oceanSurface->setLoadShaderFromFile(true);
             }
 
             // Set up ocean scene, add surface
@@ -353,7 +354,7 @@ public:
                 
                 _oceanScene = new osgOcean::OceanScene( _oceanSurface.get() );
                 _oceanScene->setLightID(0);
-                _oceanScene->enableReflections(true);
+                //_oceanScene->enableReflections(true);
                 _oceanScene->enableRefractions(true);
 
                 // Set the size of _oceanCylinder which follows the camera underwater. 
@@ -440,7 +441,7 @@ public:
 
                 _scene->addChild( lightSource );
                 _scene->addChild( _oceanScene.get() );
-                //_scene->addChild( sunDebug(_sunPositions[CLOUDY]) );
+                _scene->addChild( sunDebug(_sunPositions[CLOUDY]) );
             }
 
             osg::notify(osg::NOTICE) << "complete.\nTime Taken: ";

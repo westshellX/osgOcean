@@ -48,6 +48,9 @@ namespace osgOcean
     class OSGOCEAN_EXPORT FFTOceanSurface : public OceanTechnique
     {
     private:
+		bool _loadShaderFromFile;
+		bool _enableRefractions;
+		bool _enableReflections;
         unsigned int _tileSize;             /**< Size of FFT grid 2^n ie 128,64,32 etc. */
         unsigned int _noiseTileSize;        /**< Size of Noise FFT grid */
         unsigned int _tileResolution;       /**< Size of tile in world width/height. */
@@ -90,7 +93,8 @@ namespace osgOcean
         float       _foamCapBottom;         /**< Minimum height for foam caps. */
         float       _averageHeight;         /**< Average height over the total tiles. */
         float       _fresnelMul;            /**< Fresnel multiplier uniform, typical values: (0.5-0.8). */
-
+		float       _minHeight;
+		float       _maxHeight;
         bool        _isStateDirty;
 
         std::vector<float> _minDist;        /**< Minimum distances used for mipmap selection */
@@ -297,7 +301,14 @@ namespace osgOcean
             _waveBottomColor = color;
             _isStateDirty = true;
         }
-
+		inline void setLoadShaderFromFile(bool on)
+		{
+			if(_loadShaderFromFile==on)
+			return;
+			
+			_loadShaderFromFile=on;
+			_isStateDirty=true;
+		}
         inline void setLightColor( const osg::Vec4f& color ){
             _lightColor = color;
             _isStateDirty = true;
@@ -348,7 +359,12 @@ namespace osgOcean
         inline float getSurfaceHeight( void ) const {
             return _averageHeight;
         }
-
+		inline float getSurfaceMinHeight()const{
+			return _minHeight;
+		}
+		inline float getSurfaceMaxHeight()const{
+			return _maxHeight;
+		}
         /// Returns the height at the given point (in local space). If the 
         /// address of a Vec3f is passed in the normal argument, the normal at
         /// that position will be calculated and stored in it.
@@ -456,10 +472,17 @@ namespace osgOcean
             return _eventHandler.get();
         }
 
+		//2018_8_29 OceanScene中的enableReflections和enableRefractions无法修改osg::Uniform
+		void enableReflections(bool on);
+		inline bool areReflections(){return _enableRefractions;}
+
+		void enableRefractions(bool on);
+		inline bool areRefractions(){return _enableRefractions;}
+
     // -------------------------------
     //     Callback declarations
     // -------------------------------
-    protected:
+    public:
         /**
         * Data structure to store data needed for animation callback.
         */
