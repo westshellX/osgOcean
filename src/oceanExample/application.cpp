@@ -45,7 +45,7 @@
 #include <osgOcean/SiltEffect>
 #include <osgOcean/ShaderManager>
 
-#include "SkyDome.h"
+#include <osgSky/SkyDome>
 
 #define USE_CUSTOM_SHADER
 
@@ -248,7 +248,7 @@ private:
     osg::ref_ptr<osgOcean::OceanScene> _oceanScene;
     osg::ref_ptr<osgOcean::FFTOceanSurface> _oceanSurface;
     osg::ref_ptr<osg::TextureCubeMap> _cubemap;
-    osg::ref_ptr<SkyDome> _skyDome;
+    osg::ref_ptr<osgSky::SkyDome> _skyDome;
         
     std::vector<std::string> _cubemapDirs;
     std::vector<osg::Vec4f>  _lightColors;
@@ -378,7 +378,7 @@ public:
 
                 // create sky dome and add to ocean scene
                 // set masks so it appears in reflected scene and normal scene
-                _skyDome = new SkyDome( 1900.f, 16, 16, _cubemap.get() );
+                _skyDome = new osgSky::SkyDome( 1900.f, 16, 16, _cubemap.get() );
                 _skyDome->setNodeMask( _oceanScene->getReflectedSceneMask() | _oceanScene->getNormalSceneMask() );
 
                 // add a pat to track the camera

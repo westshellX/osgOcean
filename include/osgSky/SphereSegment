@@ -18,7 +18,7 @@
 #ifndef SPHERESEGMENT
 #define SPHERESEGMENT
 
-#include <Export>
+#include <osgSky/Export>
 #include <osg/Geode>
 #include <osg/Geometry>
 

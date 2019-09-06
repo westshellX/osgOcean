@@ -1,4 +1,4 @@
-#include <Version>
+#include <osgSky/Version>
 #include <string>
 #include <stdio.h>
 

@@ -15,7 +15,7 @@
 * http://www.gnu.org/copyleft/lesser.txt.
 */
 
-#include <SkyDome>
+#include <osgSky/SkyDome>
 #include <osgOcean/ShaderManager>
 
 using namespace osgSky;

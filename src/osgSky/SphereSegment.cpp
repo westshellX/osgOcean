@@ -15,7 +15,7 @@
 * http://www.gnu.org/copyleft/lesser.txt.
 */
 
-#include <SphereSegment>
+#include <osgSky/SphereSegment>
 
 using namespace osgSky;
 

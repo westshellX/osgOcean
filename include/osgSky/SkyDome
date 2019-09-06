@@ -18,8 +18,8 @@
 #ifndef SKYDOME
 #define SKYDOME
 
-#include <Export>
-#include <SphereSegment>
+#include <osgSky/Export>
+#include <osgSky/SphereSegment>
 #include <osg/Program>
 #include <osg/Uniform>
 #include <osg/TextureCubeMap>

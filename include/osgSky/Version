@@ -18,7 +18,7 @@
 #ifndef OSGSKY_VERSION
 #define OSGSKY_VERSION
 
-#include <Export>
+#include <osgSky/Export>
 
 extern "C" {
 

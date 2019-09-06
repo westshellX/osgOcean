@@ -55,17 +55,14 @@ ADD_EXECUTABLE(
   oceanExample
 
   application.cpp
-  SkyDome.cpp
-  SphereSegment.cpp
-
-  ${HEADER_PATH}/SkyDome.h
-  ${HEADER_PATH}/SphereSegment.h
 )
 
 TARGET_LINK_LIBRARIES(
   oceanExample
 
   osgOcean
+
+  osgSky
 
   debug ${OSG_LIBRARY_DEBUG}
   optimized ${OSG_LIBRARY}
