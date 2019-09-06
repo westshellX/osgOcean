@@ -63,6 +63,7 @@ void SphereSegment::compute( float radius,
     double longInc = (longEnd - longStart) / (double)longitudeSteps;
     double latInc  = (latEnd  - latStart ) / (double)lattitudeSteps;
 
+	//theta表示与 Z轴的夹角
     double theta = longStart, phi = latStart;
 
     float uScale = 1.f / longitudeSteps;
@@ -88,7 +89,9 @@ void SphereSegment::compute( float radius,
             phi += latInc;
         }
 
-        theta -= longInc;
+	//theta -= longInc 考虑方式的差异，[90，180] 时，z>0,绘制的上半球面
+		//可考虑修改为 theta+=longInc,此时 [0,90] z>0,绘制的上半球面
+        theta += longInc;
         phi = latStart;
     }
 
