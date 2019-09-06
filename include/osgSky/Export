@@ -32,14 +32,14 @@
 
 #if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__)
 #  if defined( OSG_LIBRARY_STATIC )
-#    define OSGSKY_EXPORT
+#    define OSGSKY_EXPORT 
 #  elif defined( OSGSKY_LIBRARY )
 #    define OSGSKY_EXPORT   __declspec(dllexport)
 #  else
 #    define OSGSKY_EXPORT   __declspec(dllimport)
 #  endif
 #else
-#  define OSGSKY_EXPORT
+#  define OSGSKY_EXPORT  
 #endif  
 
 /**

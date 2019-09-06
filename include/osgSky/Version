@@ -29,9 +29,9 @@ extern "C" {
 #define OSGSKY_VERSION_RELEASE OSGSKY_VERSION_PATCH
 #define OSGSKY_VERSION_REVISION 0
 
-extern OSGSKY_EXPORT const char* OSGSKYGetVersion();
+extern OSGSKY_EXPORT const char* osgSkyGetVersion();
 
-extern OSGSKY_EXPORT const char* OSGSKYGetLibraryName();
+extern OSGSKY_EXPORT const char* osgSkyGetLibraryName();
 
 }
 

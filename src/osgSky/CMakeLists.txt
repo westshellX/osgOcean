@@ -11,6 +11,8 @@ SET( LIB_HEADERS
 # Adds headers to the "Header Files" group in visual studio
 SOURCE_GROUP( "Header Files" ${HEADER_PATH}/*.* )
 
+ADD_DEFINITIONS(-DOSGSKY_LIBRARY)
+
 INCLUDE_DIRECTORIES (
    ${osgOcean_SOURCE_DIR}/include/
    ${osgOcean_SOURCE_DIR}/include/osgSky/
@@ -21,6 +23,7 @@ ADD_LIBRARY(
   ${LIB_HEADERS}
   SkyDome.cpp
   SphereSegment.cpp
+  Version.cpp
 )
 
 SET_TARGET_PROPERTIES(
