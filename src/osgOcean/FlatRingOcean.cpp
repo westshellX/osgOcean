@@ -1,4 +1,4 @@
-#include <osgOcean/FlatRingOcean.h>
+#include <osgOcean/FlatRingOcean>
 
 #include <osgUtil/CullVisitor>
 #include <osg/Material>

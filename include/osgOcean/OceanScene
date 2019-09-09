@@ -24,7 +24,7 @@
 #include <osgOcean/SiltEffect>
 #include <osgOcean/Cylinder>
 #include <osgOcean/FFTOceanSurface>
-#include <osgOcean/FlatRingOcean.h>
+#include <osgOcean/FlatRingOcean>
 #include <osg/Group>
 #include <osg/Camera>
 #include <osg/Texture2D>

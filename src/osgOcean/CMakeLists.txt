@@ -62,7 +62,7 @@ SET( LIB_HEADERS
   ${HEADER_PATH}/WaterTrochoids
   ${HEADER_PATH}/Export
   ${HEADER_PATH}/Version
-  ${HEADER_PATH}/FlatRingOcean.h
+  ${HEADER_PATH}/FlatRingOcean
 )
 
 # Adds headers to the "Header Files" group in visual studio
