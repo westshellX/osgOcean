@@ -91,7 +91,7 @@ void SphereSegment::compute( float radius,
 
 	//theta -= longInc 考虑方式的差异，[90，180] 时，z>0,绘制的上半球面
 		//可考虑修改为 theta+=longInc,此时 [0,90] z>0,绘制的上半球面
-        theta += longInc;
+        theta -= longInc;
         phi = latStart;
     }
 

@@ -37,16 +37,15 @@ public:
 	SkyDome( float radius, unsigned int longSteps, unsigned int latSteps, osg::TextureCubeMap* cubemap );
 	SkyDome( float radius,unsigned int longitudeSteps, unsigned int lattitudeSteps,float longStart,float longEnd,float latStart,float latEnd,osg::TextureCubeMap* cubmap);
 
-	virtual void traverse(osg::NodeVisitor& nv);
-
 protected:
 	~SkyDome(void);
 	
 public:
-	void setupStateSet( osg::TextureCubeMap* cubemap );
+	void setupStateSet( osg::TextureCubeMap* cubemap=0 );
 	void create( float radius, unsigned int latSteps, unsigned int longSteps, osg::TextureCubeMap* cubemap );
 	
 	inline void setCubeMap( osg::TextureCubeMap* cubemap ){
+		if(cubemap)
 		getOrCreateStateSet()->setTextureAttributeAndModes( 0, cubemap, osg::StateAttribute::ON );
 	}
 	inline void setFogColor(osg::Vec4 color)
@@ -57,11 +56,11 @@ public:
 	{
 		getOrCreateStateSet()->getOrCreateUniform("aboveWaterFogDensity",osg::Uniform::FLOAT)->set(density);
 	}
-private:
-	osg::ref_ptr<osg::Program> createShader(void);
-	osg::ref_ptr<osg::TextureCubeMap> _cubmap;
-	bool _isStateSetDirty;
+	void setDefaultShader(bool on=true);
 
+private:
+	osg::ref_ptr<osg::Program> createShader();  
+	bool _isDefaultShader;
 };
 }
 #endif
