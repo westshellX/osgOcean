@@ -43,7 +43,7 @@ SkyDome::SkyDome( const SkyDome& copy, const osg::CopyOp& copyop ):
 SkyDome::SkyDome( float radius, unsigned int longSteps, unsigned int latSteps, osg::TextureCubeMap* cubemap )
 	:_isDefaultShader(true)
 {
-    compute( radius, longSteps, latSteps, 90.f, 180.f, 0.f, 360.f );
+    compute( radius, longSteps, latSteps, 0.f, 180.f, 0.f, 360.f );
     setupStateSet(cubemap);
 }
 SkyDome::SkyDome( float radius,unsigned int longitudeSteps, unsigned int lattitudeSteps,float longStart,float longEnd,float latStart,float latEnd,osg::TextureCubeMap* cubemap)
@@ -80,12 +80,12 @@ void SkyDome::setupStateSet( osg::TextureCubeMap* cubemap )
 
 osg::ref_ptr<osg::Program> SkyDome::createShader()
 {
-    osg::ref_ptr<osg::Program> program = new osg::Program;
+	std::string sky_vertex = "skydome.vert";
+	std::string sky_fragment = "skydome.frag";
     
-	// Do not use shaders if they were globally disabled.
-	if (osgOcean::ShaderManager::instance().areShadersEnabled())
+	if (_isDefaultShader)
 	{
-		char vertexSource[] =
+		sky_vertex =
 			"varying vec3 vTexCoord;\n"
 			"\n"
 			"void main(void)\n"
@@ -95,7 +95,7 @@ osg::ref_ptr<osg::Program> SkyDome::createShader()
 			"    gl_FogFragCoord=gl_Position.z;\n"
 			"}\n";
 
-		char fragmentSource[] =
+		sky_fragment =
 			"uniform samplerCube uEnvironmentMap;\n"
 			"varying vec3 vTexCoord;\n"
 			"\n"
@@ -104,23 +104,9 @@ osg::ref_ptr<osg::Program> SkyDome::createShader()
 			"    vec3 tex = vec3(vTexCoord.x, vTexCoord.y, -vTexCoord.z);\n"
 			"    gl_FragColor = textureCube( uEnvironmentMap, tex.xzy );\n"
 			"}\n";
-
-		std::string vertexFile = "skydome.vert";
-		std::string fragmentFile = "skydome.frag";
-
-		program->setName("sky_dome_shader");
-		if (_isDefaultShader)
-		{
-			program->addShader(new osg::Shader(osg::Shader::VERTEX, vertexSource));
-			program->addShader(new osg::Shader(osg::Shader::FRAGMENT, fragmentSource));
-		}
-		else
-		{
-			program = osgOcean::ShaderManager::instance().createProgram("sky_dome_shader", vertexFile, fragmentFile, true);
-		}
 	}
 
-    return program;
+	return osgOcean::ShaderManager::instance().createProgram("sky_dome_shader", sky_vertex, sky_fragment, !_isDefaultShader);
 }
 void SkyDome::setDefaultShader(bool on)
 {
