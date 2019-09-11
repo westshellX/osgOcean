@@ -777,6 +777,7 @@ int main(int argc, char *argv[])
 
     osgOcean::ShaderManager::instance().enableShaders(!disableShaders);
     osg::ref_ptr<SceneModel> scene = new SceneModel(windDirection, windSpeed, depth, reflectionDamping, scale, isChoppy, choppyFactor, crestFoamHeight);
+	scene->getOceanScene()->setScreenDims(osg::Vec2s(1024, 768));
     
     if (disableShaders)
     {

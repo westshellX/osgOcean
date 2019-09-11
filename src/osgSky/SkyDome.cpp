@@ -43,7 +43,7 @@ SkyDome::SkyDome( const SkyDome& copy, const osg::CopyOp& copyop ):
 SkyDome::SkyDome( float radius, unsigned int longSteps, unsigned int latSteps, osg::TextureCubeMap* cubemap )
 	:_isDefaultShader(true)
 {
-    compute( radius, longSteps, latSteps, 0.f, 180.f, 0.f, 360.f );
+    compute( radius, longSteps, latSteps, 0.f, 90.f, 0.f, 360.f );
     setupStateSet(cubemap);
 }
 SkyDome::SkyDome( float radius,unsigned int longitudeSteps, unsigned int lattitudeSteps,float longStart,float longEnd,float latStart,float latEnd,osg::TextureCubeMap* cubemap)
