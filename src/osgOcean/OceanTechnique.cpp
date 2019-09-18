@@ -56,8 +56,11 @@ bool OceanTechnique::isVisible( osgUtil::CullVisitor& cv, bool eyeAboveWater )
     static const float cutoff = osg::PI/8;      // 45 degrees divided by 2
     osg::Vec3 lookVector = cv.getLookVectorLocal();
     float dotProduct = lookVector * osg::Vec3(0,0,1);
-    return ( eyeAboveWater && dotProduct <  cutoff) ||
-           (!eyeAboveWater && dotProduct > -cutoff);
+	return (eyeAboveWater && dotProduct < cutoff) ||
+		(!eyeAboveWater && dotProduct > -cutoff);
+		
+    //return ( eyeAboveWater && dotProduct <  -1.0*cosf(cutoff)) ||
+    //       (!eyeAboveWater && dotProduct > cosf(cutoff));
 
     // A better way would be to check if any of the frustum corners intersect 
     // the plane at (0,0,ocean_height) with normal (0,0,1), and if not then 
