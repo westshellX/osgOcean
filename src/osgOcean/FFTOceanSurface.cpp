@@ -35,8 +35,7 @@ FFTOceanSurface::FFTOceanSurface( unsigned int FFTGridSize,
 	float choppyFactor,
 	float animLoopTime,
 	unsigned int numFrames ):
-
-_tileSize       ( FFTGridSize ),
+	_tileSize       ( FFTGridSize ),
 	_noiseTileSize  ( FFTGridSize ),
 	_tileResolution ( resolution ),
 	_tileResInv     ( 1.f / float(resolution) ),
@@ -1616,6 +1615,7 @@ void FFTOceanSurface::OceanAnimationCallback::operator()(osg::Node* node, osg::N
 		{
 			osgUtil::CullVisitor* cv = static_cast<osgUtil::CullVisitor*>(nv);
 			oceanData->setEye( cv->getEyePoint() );
+			oceanData->updateOcean();
 		}
 		else if( nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR ){
 			oceanData->updateOcean();

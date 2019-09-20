@@ -569,7 +569,7 @@ void OceanScene::traverse( osg::NodeVisitor& nv )
 				bool surfaceVisible = _oceanSurface->isVisible(*cv, eyeAboveWater);
 
 				//   osg::Group::traverse(cv)中会调用一次(*surface->getCullCallback()).run()的，不需要提前run
-			/*	(*_oceanSurface->getCullCallback()).run(_oceanSurface.get(), &nv);*/
+				/*(*_oceanSurface->getCullCallback()).run(_oceanSurface.get(), &nv);*/
 
 				preRenderCull(*cv, eyeAboveWater, surfaceVisible);     // reflections/refractions
 
