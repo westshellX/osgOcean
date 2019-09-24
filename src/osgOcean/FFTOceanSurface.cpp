@@ -1615,7 +1615,6 @@ void FFTOceanSurface::OceanAnimationCallback::operator()(osg::Node* node, osg::N
 		{
 			osgUtil::CullVisitor* cv = static_cast<osgUtil::CullVisitor*>(nv);
 			oceanData->setEye( cv->getEyePoint() );
-			oceanData->updateOcean();
 		}
 		else if( nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR ){
 			oceanData->updateOcean();
