@@ -162,6 +162,17 @@ namespace osgOcean
         */
         void build( void );
 
+		        /**
+        * Creates a custom DOT3 noise map for the ocean surface.
+        * This will execute an FFT to generate a height field from which the normal map is generated.
+        * Default behaviour is to create a normal map using the params from the ocean geometry setup.
+        */
+        osg::ref_ptr<osg::Texture2D> createNoiseMap( unsigned int FFTSize, 
+            const osg::Vec2f& windDir, 
+            float windSpeed, 
+            float waveScale,
+            float tileResolution );
+
     private:
         /**
         * Add the default resource paths to osgDB::Registry.
@@ -242,16 +253,7 @@ namespace osgOcean
         */
         osg::Vec3f computeNoiseCoords(float noiseSize, const osg::Vec2f& movement, float speed, float time);
 
-        /**
-        * Creates a custom DOT3 noise map for the ocean surface.
-        * This will execute an FFT to generate a height field from which the normal map is generated.
-        * Default behaviour is to create a normal map using the params from the ocean geometry setup.
-        */
-        osg::ref_ptr<osg::Texture2D> createNoiseMap( unsigned int FFTSize, 
-            const osg::Vec2f& windDir, 
-            float windSpeed, 
-            float waveScale,
-            float tileResolution );
+
 
         /** 
         * Convenience method for creating a Texture2D based on an image file path. 
