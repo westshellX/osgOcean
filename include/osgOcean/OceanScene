@@ -622,6 +622,7 @@ namespace osgOcean
         {
             osgDB::Registry::instance()->getDataFilePathList().push_back(path);
         }
+		inline osg::MatrixTransform* getOceanCylinderMT(){return _oceanCylinderMT.get();}
 
         /** Base class for the OceanScene event handler. Subclasses of
          *  OceanScene can subclass this to provide support for
@@ -631,6 +632,7 @@ namespace osgOcean
          *  getEventHandler() in order for it to return the right concrete
          *  event handler instance.
          */
+
         class EventHandler : public osgGA::GUIEventHandler
         {
         public:
