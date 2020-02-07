@@ -37,6 +37,7 @@
 #include <string>
 #include <osg/Notify>
 #include <osgDB/ReadFile>
+#include <osgGA/EventVisitor>
 
 namespace osgOcean
 {
@@ -521,6 +522,11 @@ namespace osgOcean
         public:
             virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
         };
+		class OSGOCEAN_EXPORT OceanAnimationEventHandler:public osgGA::EventHandler
+		{
+		public:
+		    virtual bool handle(osgGA::Event* event, osg::Object* object, osg::NodeVisitor* nv);
+		};
 };
 
 }// namespace

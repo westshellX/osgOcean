@@ -186,8 +186,8 @@ _oceanSurface               ( technique ),
 	cylinderGeode->setNodeMask( getNormalSceneMask() );
 
 	_oceanCylinderMT->setMatrix( osg::Matrix::translate(0, 0, -4000) );
-	_oceanCylinderMT->setDataVariance( osg::Object::DYNAMIC ),
-		_oceanCylinderMT->setCullCallback( new CameraTrackCallback );
+	_oceanCylinderMT->setDataVariance(osg::Object::DYNAMIC);
+	_oceanCylinderMT->setCullCallback( new CameraTrackCallback );
 	_oceanCylinderMT->setNodeMask( getNormalSceneMask() );
 	_oceanCylinderMT->addChild( cylinderGeode );
 
@@ -895,7 +895,10 @@ osg::Camera* OceanScene::downsamplePass(osg::TextureRectangle* inputTexture,
 
 	return RTTCamera;
 }
-
+osg::MatrixTransform* OceanScene::getOceanTransform()
+{
+	return _oceanTransform.get();
+}
 osg::Camera* OceanScene::gaussianPass( osg::TextureRectangle* inputTexture, osg::TextureRectangle* outputTexture, bool isXAxis )
 {
 	std::string gaussian_vertex,gaussian1_fragment,gaussian2_fragment;

@@ -87,6 +87,7 @@ FFTOceanSurface::FFTOceanSurface( unsigned int FFTGridSize,
 	setUserData( new OceanDataType(*this, _NUMFRAMES, 25) );
 	setCullCallback( new OceanAnimationCallback );
 	setUpdateCallback( new OceanAnimationCallback );
+	//setEventCallback(new OceanAnimationEventHandler);
 }
 
 FFTOceanSurface::FFTOceanSurface( const FFTOceanSurface& copy, const osg::CopyOp& copyop ):
@@ -535,21 +536,20 @@ bool FFTOceanSurface::updateMipmaps( const osg::Vec3f& eye, unsigned int frame )
 	int x_offset = 0;
 	int y_offset = 0;
 
-	if(_isEndless)
+	if (_isEndless)
 	{
 		float xMin = _startPos.x();
-		float yMin = _startPos.y() - (float)((_tileResolution+1)*_numTiles);
+		float yMin = _startPos.y() - (float)((_tileResolution + 1)*_numTiles);
 
-		x_offset = (int) ( (eye.x()-xMin) / (float)_tileResolution );
-		y_offset = (int) ( (eye.y()-yMin) / (float)_tileResolution );
+		x_offset = (int)((eye.x() - xMin) / (float)_tileResolution);
+		y_offset = (int)((eye.y() - yMin) / (float)_tileResolution);
 
-		x_offset -= _numTiles/2;
-		y_offset -= _numTiles/2;
+		x_offset -= _numTiles / 2;
+		y_offset -= _numTiles / 2;
 
-		_startPos.x() += (float)(x_offset * tileSize); 
-		_startPos.y() += (float)(y_offset * tileSize); 
+		_startPos.x() += (float)(x_offset * tileSize);
+		_startPos.y() += (float)(y_offset * tileSize);
 	}
-
 	for( unsigned int y = 0; y < _numTiles; ++y)
 	{
 		for( unsigned int x = 0; x < _numTiles; ++x)
@@ -1623,7 +1623,34 @@ void FFTOceanSurface::OceanAnimationCallback::operator()(osg::Node* node, osg::N
 
 	traverse(node, nv); 
 }
-
+bool FFTOceanSurface::OceanAnimationEventHandler::handle(osgGA::Event* event, osg::Object* object, osg::NodeVisitor* nv)
+{
+	osg::ref_ptr<OceanDataType> oceanData = dynamic_cast<OceanDataType*> (object->getUserData());
+	if (oceanData.valid())
+	{
+		osgGA::GUIEventAdapter* ea = event->asGUIEventAdapter();
+		if (ea)
+		{
+			//更新不至于太频繁
+			if (ea->getEventType() == osgGA::GUIEventAdapter::FRAME)
+			{
+				osgGA::EventVisitor* ev = static_cast<osgGA::EventVisitor*>(nv);
+				if (ev)
+				{
+					osg::View* view = dynamic_cast<osg::View*>(ev->getActionAdapter());
+					if (view)
+					{
+						osg::Vec3f centre, up, eye;
+						view->getCamera()->getViewMatrixAsLookAt(eye, centre, up);
+						oceanData->setEye(eye);
+						OSG_NOTICE << "Frame eye:" << std::endl;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
 
 FFTOceanSurface::EventHandler::EventHandler(OceanTechnique* oceanSurface):
 OceanTechnique::EventHandler(oceanSurface),

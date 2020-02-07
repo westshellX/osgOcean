@@ -7,7 +7,8 @@
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
 #include <osgOcean/Export>
-
+#include <osgOcean/FFTSimulation>
+#include <osgOcean/OceanTile>
 //不太确定是否使用setUserData(new FlatOceanDataType(*this)); 0:使用， 1：不使用
 #define MODE_2018_9_23   0
 
@@ -16,7 +17,7 @@ namespace osgOcean
 	class OSGOCEAN_EXPORT FlatRingOceanGeode : public osg::Geode
 	{
 	public:
-		FlatRingOceanGeode(float in=10.0,float out=100.0,unsigned int cSteps=10,unsigned int rSteps=10);
+		FlatRingOceanGeode(float in = 10.0, float out = 100.0, unsigned int cSteps = 10, unsigned int rSteps = 10);
 
 		~FlatRingOceanGeode();
 
@@ -30,87 +31,82 @@ namespace osgOcean
 
 		inline void SetHeight(float h)
 		{
-			_height=h;
-			_isDirty=true;
+			_height = h;
+			_isDirty = true;
 		}
 
-		inline float GetHeight(){return _height;}
+		inline float GetHeight() { return _height; }
 
-		inline unsigned int GetCircleSteps(){return _circleSteps;}
+		inline unsigned int GetCircleSteps() { return _circleSteps; }
 		inline void SetCirlceSteps(unsigned int wS)
 		{
-			_circleSteps=wS;
-			_isDirty=true;
+			_circleSteps = wS;
+			_isDirty = true;
 		}
 
-		inline unsigned int GetRSteps(){return _rSteps;}
+		inline unsigned int GetRSteps() { return _rSteps; }
 		inline void SetRSteps(unsigned int lS)
 		{
-			_rSteps=lS;
-			_isDirty=true;
+			_rSteps = lS;
+			_isDirty = true;
 		}
 
 		inline void SetCenterPoint(osg::Vec2 pos)
 		{
-			_centerPoint=pos;
+			_centerPoint = pos;
 		}
-		inline bool upDateCenterPoint( const osg::Vec3f& eye)
+		inline bool upDateCenterPoint(const osg::Vec3f& eye)
 		{
-			bool update=false;
-			osg::Vec2 moveVector=osg::Vec2(eye.x()-GetCenterPoint().x(),eye.y()-GetCenterPoint().y());
+			if (!isEndlessOceanEnabled())
+				return false;
+			bool update = false;
+			osg::Vec2 moveVector = osg::Vec2(eye.x() - GetCenterPoint().x(), eye.y() - GetCenterPoint().y());
 
 			//2018_9_23 14:00 优化一点是一点
-			if(moveVector.length()>0.25*GetInR())
-				update=true;
+			if (moveVector.length() > 0.25*GetInR())
+				update = true;
 			return update;
 		}
-		inline osg::Vec2 GetCenterPoint(){return _centerPoint;}
+		inline osg::Vec2 GetCenterPoint() { return _centerPoint; }
 
-		inline void enableReflections(bool able)
-		{
-			if(_enableReflections==able)
+		inline void setLightID(unsigned int id) {
+			if (_lightID == id)
 				return;
-			_enableReflections=able;
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_EnableReflections",osg::Uniform::BOOL)->set(_enableReflections);
-		}
-		inline void setLightID( unsigned int id ){
-			if(_lightID == id)
-				return;
-			_lightID=id;
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_LightID",osg::Uniform::UNSIGNED_INT)->set(_lightID);
+			_lightID = id;
+			getOrCreateStateSet()->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
 		}
 
 		inline void SetSkyNodeSet(bool able)
 		{
-			if(_skyNodeSet==able)
+			if (_skyNodeSet == able)
 				return;
-			_skyNodeSet=able;
-			getOrCreateStateSet()->getOrCreateUniform("skyLoadSet",osg::Uniform::BOOL)->set(_skyNodeSet);
+			_skyNodeSet = able;
+			getOrCreateStateSet()->getOrCreateUniform("skyLoadSet", osg::Uniform::BOOL)->set(_skyNodeSet);
 		}
 
-		void build(float h=0.0);
+		void build(float h = 0.0);
 
 		//主要是设置远处海平面的颜色
 		void initStateSet();
 
-		void UpdateOcean(const osg::Vec3f& eye);
+		void UpdateOcean(const osg::Vec3f& eye, const double& dt = 0);
 
 		inline void SetWaveTopColor(osg::Vec3 color)
 		{
-			_waveTopColor=color;
-			osg::Vec4f waveTop = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveTopColor,1.f) );
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveTop",osg::Uniform::FLOAT_VEC4)->set(osg::Vec4(waveTop));
+			_waveTopColor = color;
+			osg::Vec4f waveTop = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveTopColor, 1.f));
+			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveTop", osg::Uniform::FLOAT_VEC4)->set(osg::Vec4(waveTop));
 		}
 		inline void SetWaveBottomColor(osg::Vec3 color)
 		{
-			_waveBottomColor=color;
-			osg::Vec4f waveBot = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveBottomColor,1.f) );
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveBot",osg::Uniform::FLOAT_VEC4)->set(waveBot);
+			_waveBottomColor = color;
+			osg::Vec4f waveBot = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveBottomColor, 1.f));
+			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveBot", osg::Uniform::FLOAT_VEC4)->set(waveBot);
 		}
 		inline void SetEnvironmentMap(osg::TextureCubeMap* environmentMap)
 		{
-			_environmentMap=environmentMap;
-			_isStateDirty=true;
+			_environmentMap = environmentMap;
+			_isStateDirty = true;
 		}
 		inline osg::TextureCubeMap* GetEnvironmetMap()
 		{
@@ -122,13 +118,13 @@ namespace osgOcean
 		* Linear interpolation of 3 RGBA colors.
 		* @return interpolated color (vec4)
 		*/
-		inline osg::Vec4f colorLerp (const osg::Vec4f& c0, const osg::Vec4f& c1, const osg::Vec4f& c2) const 
+		inline osg::Vec4f colorLerp(const osg::Vec4f& c0, const osg::Vec4f& c1, const osg::Vec4f& c2) const
 		{
 			return osg::Vec4f(
-				c1[0]*(1-c0[0]) + c2[0]*c0[0],
-				c1[1]*(1-c0[1]) + c2[1]*c0[1],
-				c1[2]*(1-c0[2]) + c2[2]*c0[2],
-				c1[3]*(1-c0[3]) + c2[3]*c0[3]
+				c1[0] * (1 - c0[0]) + c2[0] * c0[0],
+				c1[1] * (1 - c0[1]) + c2[1] * c0[1],
+				c1[2] * (1 - c0[2]) + c2[2] * c0[2],
+				c1[3] * (1 - c0[3]) + c2[3] * c0[3]
 			);
 		}
 
@@ -141,31 +137,25 @@ namespace osgOcean
 		*/
 		osg::Vec3f computeNoiseCoords(float noiseSize, const osg::Vec2f& movement, float speed, float time);
 
-		osg::Texture2D* createTexture( const std::string& path, osg::Texture::WrapMode wrap );
+		osg::Texture2D* createTexture(const std::string& path, osg::Texture::WrapMode wrap);
 
-		inline void SetFogColor(osg::Vec4 color)
+		inline void setFogColor(osg::Vec4 color)
 		{
-			if(_fogColor==color)
+			if (_aboveWaterFogColor == color)
 				return;
-			_fogColor=color;
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_AboveWaterFogColor",osg::Uniform::FLOAT_VEC4)->set(_fogColor);
+			_aboveWaterFogColor = color;
+			_isStateDirty=true;
 		}
-		inline osg::Vec4 GetFogColor(){return _fogColor;}
+		inline osg::Vec4 getFogColor() { return _aboveWaterFogColor; }
 
-		inline void SetFogDensity(float f)
+		inline void setFogDensity(float f)
 		{
-			if(_fogDensity==f)
+			if (_aboveWaterFogDensity == f)
 				return;
-			_fogDensity=f;
-
-			const float LOG2E = 1.442695;
-			{
-				osg::ref_ptr<osg::Uniform> uniform=getOrCreateStateSet()->getOrCreateUniform("osgOcean_AboveWaterFogDensity",osg::Uniform::FLOAT);
-				//与OceanScene保持一致
-				uniform->set(-GetFogDensity()*GetFogDensity()*LOG2E);
-			}
+			_aboveWaterFogDensity = f;
+			_isStateDirty=true;
 		}
-		inline float GetFogDensity(){return _fogDensity;}
+		inline float getFogDensity() { return _aboveWaterFogDensity; }
 
 		void createOceanGeometry();
 
@@ -177,6 +167,58 @@ namespace osgOcean
 		void setEye(osg::Vec3 pos);
 		osg::Vec3 getEye();
 
+		inline void enableEndlessOcean(bool enable, bool dirty = true) {
+			_isEndless = enable;
+			if (dirty)
+				_isDirty = true;
+		}
+
+		inline bool isEndlessOceanEnabled() const {
+			return _isEndless;
+		}
+		/**
+	* Creates a custom DOT3 noise map for the ocean surface.
+	* This will execute an FFT to generate a height field from which the normal map is generated.
+	* Default behaviour is to create a normal map using the params from the ocean geometry setup.
+	*/
+		osg::ref_ptr<osg::Texture2D> createNoiseMap(unsigned int FFTSize,
+			const osg::Vec2f& windDir,
+			float windSpeed,
+			float waveScale,
+			float tileResolution);
+
+		void setTileResolution(unsigned int s);
+		unsigned int getTileResolution();
+
+		void setTileSize(unsigned int s);
+		unsigned int getTileSize();
+
+		bool isUseCrestFoam();
+		void enableUseCrestFoam(bool on);
+
+		void setFoamCapTop(float value);
+		float getFoamCapTop();
+
+		void setFoamCapBottom(float value);
+		float getFoamCapBottom();
+
+		bool areEnableReflections();
+		void enableReflections(bool on);
+
+		bool areEnableRefractions();
+		void enableRefractions(bool on);
+
+		float getNoiseWaveScale();
+		void setNoiseWaveScale(float value);
+
+		float getNoiseWindSpeed();
+		void setNoiseWindSpeed(float value);
+
+		osg::Vec2 getNoiseWindDir();
+		void setNoiseWindDir(osg::Vec2 dir);
+
+		void setFresnelMul(float value);
+		float getFresnelMul();
 
 	private:
 		float _inR;    //与FFTOceanSurface的宽度相同
@@ -195,16 +237,29 @@ namespace osgOcean
 		osg::Vec4f _lightColor;
 		osg::Vec3f _waveTopColor;   //远处的海水颜色
 		osg::Vec3f _waveBottomColor;
-
-		osg::ref_ptr<osg::TextureCubeMap> _environmentMap;
-		enum TEXTURE_UNITS{ MAP2D=0,MAP_DARK=1,ENV_MAP=2 };
-
 		bool _enableReflections;
+		bool _enableRefractions;
 		bool _skyNodeSet;  //加载的是天空模型
-		osg::Vec4 _fogColor;
-		float _fogDensity;
 
 		unsigned int _lightID;
+		bool _useCrestFoam;
+		float       _foamCapTop;            /**< Maximum height for foam caps. */
+		float       _foamCapBottom;         /**< Minimum height for foam caps. */
+		unsigned int _tileResolution;       /**< Size of tile in world width/height. */
+		float        _tileResInv;           /**< 1 / _tileResoltion; */
+		float       _fresnelMul;            /**< Fresnel multiplier uniform, typical values: (0.5-0.8). */
+		unsigned int _noiseTileSize;        /**< Size of Noise FFT grid */
+		unsigned int _noiseTileRes;         /**< Size of noise tile in world width/height. */
+		osg::Vec2f   _noiseWindDir;         /**< Direction of wind for noise tile. */
+		float        _noiseWindSpeed;       /**< Wind speed for noise tile m/s */
+		float        _noiseWaveScale;       /**< Wave scale modifier for noise tile. */
+		float        _depth;                /**< Depth (m). */
+		float        _reflDampFactor;       /**< Dampen waves going against the wind */
+		float _aboveWaterFogDensity;
+		osg::Vec4f _aboveWaterFogColor;
+
+		osg::ref_ptr<osg::TextureCubeMap> _environmentMap;
+		enum TEXTURE_UNITS { ENV_MAP = 0, REFLECT_MAP = 1, REFRACT_MAP = 2, NORMAL_MAP = 3, FOG_MAP = 4, FOAM_MAP = 5 };
 
 		osg::ref_ptr<osg::Geometry> _geom;
 
@@ -212,37 +267,44 @@ namespace osgOcean
 		osg::ref_ptr<osg::Vec3Array> _normals;
 		osg::ref_ptr<osg::Vec2Array> _texcoords;
 		osg::ref_ptr<osg::Vec4Array> _colors;
-
+		bool _isEndless;
 #if MODE_2018_9_23
 		osg::Vec3 _eye;
-
 #else
+
 	public:
 		/**
 		* Data structure to store data needed for animation callback.
 		*/
-		class OSGOCEAN_EXPORT FlatOceanDataType: public osg::Referenced
+		class OSGOCEAN_EXPORT FlatOceanDataType : public osg::Referenced
 		{
 		private:
-			osgOcean::FlatRingOceanGeode& _oceanSurface;
+			/*osgOcean::*/FlatRingOceanGeode& _oceanSurface;
+			const unsigned int _NUMFRAMES;
 			osg::Vec3f _eye;
+			float _time;
+			const unsigned int _FPS;
+			float _msPerFrame;
+			unsigned int _frame;
+			osg::Timer_t _oldTime;
+			osg::Timer_t _newTime;
 		public:
-			FlatOceanDataType(  FlatRingOceanGeode& ocean);
-			FlatOceanDataType( const FlatOceanDataType& copy, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY );
+			FlatOceanDataType(FlatRingOceanGeode& ocean, unsigned int numFrames, unsigned int fps);
+			FlatOceanDataType(const FlatOceanDataType& copy, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY);
 
-			inline void setEye( const osg::Vec3f& eye ){ _eye = eye;    }
-			inline osg::Vec3 getEye(){return _eye;}
+			inline void setEye(const osg::Vec3f& eye) { _eye = eye; }
+			inline osg::Vec3 getEye() { return _eye; }
 			/**
 			* @see FFTOceanSurface::update();
 			*/
 			void updateOcean(void);
 		};
 #endif
-		public:
-			class FlatRingOceanGeodeCallback : public osg::NodeCallback
-			{
-				virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
-			};
+	public:
+		class OSGOCEAN_EXPORT FlatRingOceanGeodeCallback : public osg::NodeCallback
+		{
+			virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+		};
 	};
 }
 #endif
