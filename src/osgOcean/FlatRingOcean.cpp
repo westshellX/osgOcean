@@ -20,6 +20,7 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	, _rSteps(rSteps)
 	, _isDirty(true)
 	, _isStateDirty(true)
+	,_isWaveDirty(true)
 	, _centerPoint(0.0, 0.0)
 	, _lightColor(0.411764705f, 0.54117647f, 0.6823529f, 1.f)
 	, _waveTopColor(0.192156862f, 0.32549019f, 0.36862745098f)   //直接从FFTOceanSurface中复制过来的颜色
@@ -43,6 +44,10 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	_reflDampFactor(REFLECTIONDAMPING),
 	_aboveWaterFogDensity(0.0012f),
 	_aboveWaterFogColor(osg::Vec4(199/255.0, 226/255.0, 255/255.0,1.0)),
+	_NUMFRAMES(256),
+	_cycleTime(10),
+	_choppyFactor(-2.5),
+	_isChoppy(true),
 	 _environmentMap(0)
 	, _geom(new osg::Geometry)
 	, _vertices(new osg::Vec3Array)
@@ -55,7 +60,6 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 {
 #else
 {
-		int _NUMFRAMES = 256;
 		setUserData(new FlatOceanDataType(*this, _NUMFRAMES, 25));
 #endif
 		osg::ref_ptr<FlatRingOceanGeodeCallback> _callback = new FlatRingOceanGeodeCallback;
@@ -101,8 +105,11 @@ void FlatRingOceanGeode::build(float h)
 
 	initStateSet();
 
+	buildWaveTextures();
+
 	_isDirty = false;
 	_isStateDirty = false;
+	_isWaveDirty = false;
 }
 void FlatRingOceanGeode::createOceanGeometry()
 {
@@ -235,6 +242,8 @@ void FlatRingOceanGeode::initStateSet()
 	_stateset->addUniform(new osg::Uniform("osgOcean_FresnelMul", _fresnelMul));
 	_stateset->addUniform(new osg::Uniform("osgOcean_EyePosition", osg::Vec3f()));
 
+	_stateset->addUniform(new osg::Uniform("osgOcean_WaterWaveMap", WAVE_MAP));
+
 	osg::ref_ptr<osg::Program> program = createShader();
 
 	if (program.valid())
@@ -301,18 +310,20 @@ osg::ref_ptr<osg::Texture2D> FlatRingOceanGeode::createNoiseMap(unsigned int siz
 osg::Program* FlatRingOceanGeode::createShader()
 {
 	std::string shaderName = "flatRingOcean_surface";
-	std::string vertFile = "water.vert";
-	std::string fragmentFile = "water.frag";
+	std::string vertFile = "flatRingWater.vert";
+	std::string fragmentFile = "flatRingWater.frag";
 
 	return osgOcean::ShaderManager::instance().createProgram(shaderName, vertFile, fragmentFile, true);
 }
 
-void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt)
+void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsigned int frame)
 {
 	if (_isDirty)
 		build(GetHeight());
 	else if (_isStateDirty)
 		initStateSet();
+	if (_isWaveDirty)
+		buildWaveTextures();
 
 	getOrCreateStateSet()->getOrCreateUniform("osgOcean_EyePosition", osg::Uniform::FLOAT_VEC3)->set(eye);
 	static double time = 0.0;
@@ -320,6 +331,10 @@ void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt)
 
 	getStateSet()->getUniform("osgOcean_NoiseCoords0")->set(computeNoiseCoords(32.f, osg::Vec2f(2.f, 4.f), 2.f, time));
 	getStateSet()->getUniform("osgOcean_NoiseCoords1")->set(computeNoiseCoords(8.f, osg::Vec2f(-4.f, 2.f), 1.f, time));
+	
+	if (_texturesFrame[frame].valid())
+		getStateSet()->setTextureAttributeAndModes(WAVE_MAP, _texturesFrame[frame].get(), osg::StateAttribute::ON);
+
 	if (upDateCenterPoint(eye))
 	{
 		SetCenterPoint(osg::Vec2(eye.x(), eye.y()));
@@ -396,9 +411,7 @@ void FlatRingOceanGeode::FlatOceanDataType::updateOcean(void)
 
 		_time = fmod(_time, _msPerFrame);
 	}
-
-	//_oceanSurface.update(_frame, dt, _eye);
-	_oceanSurface.UpdateOcean(_eye,dt);
+	_oceanSurface.UpdateOcean(_eye,dt,_frame);
 }
 #endif
 void FlatRingOceanGeode::FlatRingOceanGeodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
@@ -600,4 +613,111 @@ void FlatRingOceanGeode::setFresnelMul(float value)
 float FlatRingOceanGeode::getFresnelMul()
 {
 	return _fresnelMul;
+}
+void FlatRingOceanGeode::setFrameNum(unsigned int value)
+{
+	if (_NUMFRAMES == value)
+		return;
+	_NUMFRAMES = value;
+	_isWaveDirty = true;
+}
+unsigned int FlatRingOceanGeode::getFrameNum()
+{
+	return _NUMFRAMES;
+}
+void FlatRingOceanGeode::setCycleTime(float value)
+{
+	if (_cycleTime == value)
+		return;
+	_cycleTime = value;
+	_isWaveDirty = true;
+}
+float FlatRingOceanGeode::getCycleTime()
+{
+	return _cycleTime;
+}
+void FlatRingOceanGeode::setDepth(float value)
+{
+	if (_depth == value)
+		return;
+	_depth = value;
+	_isWaveDirty = true;
+	_isStateDirty = true;
+}
+float FlatRingOceanGeode::getDepth()
+{
+	return _depth;
+}
+void FlatRingOceanGeode::setChoppyFactor(float value)
+{
+	if (_choppyFactor == value)
+		return;
+	_choppyFactor = value;
+	_isWaveDirty = true;
+}
+float FlatRingOceanGeode::getChoppyFactor()
+{
+	return _choppyFactor;
+}
+void FlatRingOceanGeode::setIsChoppy(bool value)
+{
+	if (_isChoppy == value)
+		return;
+	_isChoppy = value;
+	_isWaveDirty = true;
+}
+void FlatRingOceanGeode::buildWaveTextures()
+{
+	osgOcean::FFTSimulation FFTSim(getTileSize(),getNoiseWindDir(),getNoiseWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _tileResolution,_cycleTime);
+
+	_texturesFrame.clear();
+	_texturesFrame.resize(getFrameNum());
+
+	float _pointSpacing =getTileResolution()/ getTileSize();
+	for (unsigned int frame = 0; frame <getFrameNum(); ++frame)
+	{
+		osg::ref_ptr<osg::FloatArray> heights = new osg::FloatArray;
+		osg::ref_ptr<osg::Vec2Array> displacements = NULL;
+
+		if (_isChoppy)
+			displacements = new osg::Vec2Array;
+
+		float time = getCycleTime() * (float(frame) / float(getFrameNum()));
+
+		FFTSim.setTime(time);
+		FFTSim.computeHeights(heights.get());
+
+		if (_isChoppy)
+			FFTSim.computeDisplacements(_choppyFactor, displacements.get());
+
+		osgOcean::OceanTile tile(heights.get(), _noiseTileSize, _pointSpacing, displacements.get());
+		_texturesFrame[frame] = convertToR32F(tile);	
+	}
+	_isWaveDirty = false;
+}
+osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
+{
+	osg::ref_ptr<osg::FloatArray> waveheights = new osg::FloatArray;
+	waveheights->resize(hf.getNumVertices());
+	for (int y = 0; y < hf.getRowLen(); ++y)
+	{
+		for (int x = 0; x < hf.getRowLen(); ++x)
+		{
+			waveheights->at(y*hf.getRowLen() + x) = hf.getVertex(x, y).z();
+		}
+	}
+	osg::ref_ptr<osg::Image> image = new osg::Image();
+	image->allocateImage(hf.getRowLen(), hf.getRowLen(), 1, GL_RED, GL_FLOAT);
+	image->setInternalTextureFormat(GL_R32F);
+	memcpy(image->data(), &waveheights->front(), sizeof(float) * waveheights->size());
+
+	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(image);
+	tex->setInternalFormat(GL_R32F);
+	tex->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	tex->setFilter(osg::Texture::MIN_FILTER, osg::Texture::NEAREST);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+	tex->setResizeNonPowerOfTwoHint(false);
+	tex->setMaxAnisotropy(1.0f);
+	return tex.release();
 }

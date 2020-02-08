@@ -89,7 +89,10 @@ namespace osgOcean
 		//主要是设置远处海平面的颜色
 		void initStateSet();
 
-		void UpdateOcean(const osg::Vec3f& eye, const double& dt = 0);
+		void UpdateOcean(const osg::Vec3f& eye, const double& dt = 0,unsigned int frame=0);
+
+		void buildWaveTextures();
+	    osg::Texture2D* convertToR32F(const osgOcean::OceanTile hf);
 
 		inline void SetWaveTopColor(osg::Vec3 color)
 		{
@@ -220,6 +223,21 @@ namespace osgOcean
 		void setFresnelMul(float value);
 		float getFresnelMul();
 
+		void setFrameNum(unsigned int value);
+		unsigned int getFrameNum();
+
+		void setCycleTime(float value);
+		float getCycleTime();
+
+		void setDepth(float value);
+		float getDepth();
+
+		float getChoppyFactor();
+		void  setChoppyFactor(float value);
+
+		void setIsChoppy(bool value);
+		bool getIsChoppy();
+
 	private:
 		float _inR;    //与FFTOceanSurface的宽度相同
 		float _outR;
@@ -231,7 +249,7 @@ namespace osgOcean
 
 		bool _isDirty;
 		bool _isStateDirty;
-
+		bool _isWaveDirty;
 		osg::Vec2f _centerPoint;
 
 		osg::Vec4f _lightColor;
@@ -257,9 +275,12 @@ namespace osgOcean
 		float        _reflDampFactor;       /**< Dampen waves going against the wind */
 		float _aboveWaterFogDensity;
 		osg::Vec4f _aboveWaterFogColor;
-
+		unsigned int _NUMFRAMES;      /**< Number of frames in the animation cycle */
+		float        _cycleTime;            /**< Time before the ocean tiles loop. */
+		float        _choppyFactor;         /**< Amount of chop to add. */
+        bool         _isChoppy;             /**< Enable choppy waves generation. */
 		osg::ref_ptr<osg::TextureCubeMap> _environmentMap;
-		enum TEXTURE_UNITS { ENV_MAP = 0, REFLECT_MAP = 1, REFRACT_MAP = 2, NORMAL_MAP = 3, FOG_MAP = 4, FOAM_MAP = 5 };
+		enum TEXTURE_UNITS { ENV_MAP = 0, REFLECT_MAP = 1, REFRACT_MAP = 2, NORMAL_MAP = 3, FOG_MAP = 4, FOAM_MAP = 5,WAVE_MAP=6  };
 
 		osg::ref_ptr<osg::Geometry> _geom;
 
@@ -268,6 +289,9 @@ namespace osgOcean
 		osg::ref_ptr<osg::Vec2Array> _texcoords;
 		osg::ref_ptr<osg::Vec4Array> _colors;
 		bool _isEndless;
+
+	    std::vector<osg::ref_ptr<osg::Texture2D>> _texturesFrame;
+
 #if MODE_2018_9_23
 		osg::Vec3 _eye;
 #else
