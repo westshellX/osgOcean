@@ -13,12 +13,12 @@
 using namespace osgOcean;
 
 FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, unsigned int rSteps)
-	:_inR(w)
+	:OceanTechnique()
+	,_inR(w)
 	, _outR(out)
 	, _height(0.0)
 	, _circleSteps(cSteps)
 	, _rSteps(rSteps)
-	, _isDirty(true)
 	, _isStateDirty(true)
 	,_isWaveDirty(true)
 	, _centerPoint(0.0, 0.0)
@@ -32,16 +32,16 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	,_useCrestFoam(false),
 	_foamCapBottom(2.2f),
 	_foamCapTop(3.0f),
-	_tileResolution(RESOLUTION),
-	_tileResInv(1.f / float(RESOLUTION)),
+	_tileResolution(256),
+	_tileResInv(1.f / float(256)),
 	_fresnelMul(0.7),
 	_noiseTileSize(32),
-	_noiseTileRes(RESOLUTION),
+	_noiseTileRes(256),
 	_noiseWindDir(osg::Vec2(1.0,1.0)),
 	_noiseWindSpeed(6.0),
-	_noiseWaveScale(INITWAVESCALE),
+	_noiseWaveScale(1e-8),
 	_depth(1000.0),
-	_reflDampFactor(REFLECTIONDAMPING),
+	_reflDampFactor(0.35),
 	_aboveWaterFogDensity(0.0012f),
 	_aboveWaterFogColor(osg::Vec4(199/255.0, 226/255.0, 255/255.0,1.0)),
 	_NUMFRAMES(256),
@@ -95,7 +95,7 @@ float FlatRingOceanGeode::GetOceanWidth()
 {
 	return GetOutR();
 }
-void FlatRingOceanGeode::build(float h)
+void FlatRingOceanGeode::build()
 {
 	createOceanGeometry();
 
@@ -169,7 +169,7 @@ void FlatRingOceanGeode::computeVertices()
 			cos_t = cos(j*thetaDelta);
 			x = GetCenterPoint().x() + R * cos_t;
 			y = GetCenterPoint().y() + R * sin_t;
-			z = GetHeight();
+			z = getSurfaceHeight();
 
 			(*_vertices)[ptr] = osg::Vec3(x, y, z);
 			scale = R / GetOutR();
@@ -243,6 +243,12 @@ void FlatRingOceanGeode::initStateSet()
 	_stateset->addUniform(new osg::Uniform("osgOcean_EyePosition", osg::Vec3f()));
 
 	_stateset->addUniform(new osg::Uniform("osgOcean_WaterWaveMap", WAVE_MAP));
+	int sizeTemp = int(_noiseTileSize);
+	_stateset->addUniform(new osg::Uniform("tileSize",sizeTemp));    //oneTileSize
+	//_stateset->addUniform(new osg::Uniform("tileResolution", _noiseTileRes));    //oneTileRes
+	int numTiles = 2*(int)_outR / _noiseTileRes;
+	_stateset->addUniform(new osg::Uniform("numTiles",numTiles ));                 //tileNum 
+	_stateset->addUniform(new osg::Uniform("currentFrame",0));                 //frame
 
 	osg::ref_ptr<osg::Program> program = createShader();
 
@@ -319,7 +325,7 @@ osg::Program* FlatRingOceanGeode::createShader()
 void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsigned int frame)
 {
 	if (_isDirty)
-		build(GetHeight());
+		build();
 	else if (_isStateDirty)
 		initStateSet();
 	if (_isWaveDirty)
@@ -334,6 +340,7 @@ void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsi
 	
 	if (_texturesFrame[frame].valid())
 		getStateSet()->setTextureAttributeAndModes(WAVE_MAP, _texturesFrame[frame].get(), osg::StateAttribute::ON);
+	getStateSet()->getUniform("currentFrame")->set(int(frame));
 
 	if (upDateCenterPoint(eye))
 	{
@@ -342,7 +349,14 @@ void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsi
 		computePrimitives();
 	}
 }
-
+float FlatRingOceanGeode::getSurfaceHeight()const
+{
+	return _height;
+}
+float FlatRingOceanGeode::getSurfaceHeightAt(float x, float y, osg::Vec3f* normal /* = NULL */)
+{
+	return _height;
+}
 void FlatRingOceanGeode::setEye(osg::Vec3 pos)
 {
 #if MODE_2018_9_23
@@ -715,8 +729,8 @@ osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
 	tex->setInternalFormat(GL_R32F);
 	tex->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
 	tex->setFilter(osg::Texture::MIN_FILTER, osg::Texture::NEAREST);
-	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+	tex->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+	tex->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
 	tex->setResizeNonPowerOfTwoHint(false);
 	tex->setMaxAnisotropy(1.0f);
 	return tex.release();
