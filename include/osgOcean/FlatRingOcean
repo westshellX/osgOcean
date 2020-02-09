@@ -74,6 +74,8 @@ namespace osgOcean
 			_lightID = id;
 			getOrCreateStateSet()->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
 		}
+		void setLightColor(const osg::Vec4f& color);
+		osg::Vec4 getLightColor();
 
 		inline void SetSkyNodeSet(bool able)
 		{
@@ -87,6 +89,12 @@ namespace osgOcean
 		virtual float getSurfaceHeight() const;
 		virtual float getSurfaceHeightAt(float x, float y, osg::Vec3f* normal = NULL);
 
+		virtual OceanTechnique::EventHandler* getEventHandler()
+        {
+            if (!_eventHandler.valid())
+                 _eventHandler = new FlatRingOceanGeode::EventHandler(this);
+            return _eventHandler.get();
+        }
 		//主要是设置远处海平面的颜色
 		void initStateSet();
 
@@ -197,14 +205,14 @@ namespace osgOcean
 		void setTileSize(unsigned int s);
 		unsigned int getTileSize();
 
-		bool isUseCrestFoam();
-		void enableUseCrestFoam(bool on);
+		bool isCrestFoamEnabled();
+		void enableCrestFoam(bool on);
 
-		void setFoamCapTop(float value);
-		float getFoamCapTop();
+		void setFoamTopHeight(float value);
+		float getFoamTopHeight();
 
-		void setFoamCapBottom(float value);
-		float getFoamCapBottom();
+		void setFoamBottomHeight(float value);
+		float getFoamBottomHeight();
 
 		bool areEnableReflections();
 		void enableReflections(bool on);
@@ -212,14 +220,17 @@ namespace osgOcean
 		bool areEnableRefractions();
 		void enableRefractions(bool on);
 
-		float getNoiseWaveScale();
-		void setNoiseWaveScale(float value);
+		float getWaveScaleFactor();
+		void setWaveScaleFactor(float value,bool autoDirty=true);
 
-		float getNoiseWindSpeed();
-		void setNoiseWindSpeed(float value);
+		float getWindSpeed();
+		void setWindSpeed(float value,bool dirty = true);
 
-		osg::Vec2 getNoiseWindDir();
-		void setNoiseWindDir(osg::Vec2 dir);
+		inline osg::Vec2f getWindDirection()const
+		{
+		     return _noiseWindDir;
+	    }
+		void setWindDir(osg::Vec2 dir,bool dirty = true);
 
 		void setFresnelMul(float value);
 		float getFresnelMul();
@@ -236,8 +247,8 @@ namespace osgOcean
 		float getChoppyFactor();
 		void  setChoppyFactor(float value);
 
-		void setIsChoppy(bool value);
-		bool getIsChoppy();
+		void setIsChoppy(bool value,bool dirty = true);
+		bool isChoppy();
 
 	private:
 		float _inR;    //与FFTOceanSurface的宽度相同
@@ -329,6 +340,22 @@ namespace osgOcean
 		{
 			virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 		};
+
+		        /** This class overrides OceanTechnique::EventHandler to provide 
+         *  support for manipulating this particular subclass of 
+         *  OceanTechnique. Note that the method signatures are identical, 
+         *  and that the FFTOceanSurface will be accessed through the base 
+         *  class OceanTechnique pointer.
+         */
+        class EventHandler : public OceanTechnique::EventHandler
+        {
+        public:
+            EventHandler(OceanTechnique* oceanSurface);
+            virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* object, osg::NodeVisitor* nv);
+            virtual void getUsage(osg::ApplicationUsage& usage) const;
+        protected:
+            bool _autoDirty;
+        };
 	};
 }
 #endif

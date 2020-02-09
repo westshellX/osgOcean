@@ -521,11 +521,11 @@ void FlatRingOceanGeode::setTileSize(unsigned int s)
 	_noiseTileSize = s;
 	_isStateDirty = true;
 }
-bool FlatRingOceanGeode::isUseCrestFoam()
+bool FlatRingOceanGeode::isCrestFoamEnabled()
 {
 	return _useCrestFoam;
 }
-void FlatRingOceanGeode::enableUseCrestFoam(bool on)
+void FlatRingOceanGeode::enableCrestFoam(bool on)
 {
 	if (_useCrestFoam == on)
 		return;
@@ -533,26 +533,26 @@ void FlatRingOceanGeode::enableUseCrestFoam(bool on)
 	_isStateDirty = true;
 }
 
-void FlatRingOceanGeode::setFoamCapTop(float value)
+void FlatRingOceanGeode::setFoamTopHeight(float value)
 {
 	if (_foamCapTop == value)
 		return;
 	_foamCapTop = value;
 	_isStateDirty = true;
 }
-float FlatRingOceanGeode::getFoamCapTop()
+float FlatRingOceanGeode::getFoamTopHeight()
 {
 	return _foamCapTop;
 }
 
-void FlatRingOceanGeode::setFoamCapBottom(float value)
+void FlatRingOceanGeode::setFoamBottomHeight(float value)
 {
 	if (_foamCapBottom == value)
 		return;
 	_foamCapBottom = value;
 	_isStateDirty = true;
 }
-float FlatRingOceanGeode::getFoamCapBottom()
+float FlatRingOceanGeode::getFoamBottomHeight()
 {
 	return _foamCapBottom;
 }
@@ -581,40 +581,38 @@ void FlatRingOceanGeode::enableRefractions(bool on)
 	_isStateDirty = true;
 }
 
-float FlatRingOceanGeode::getNoiseWaveScale()
+float FlatRingOceanGeode::getWaveScaleFactor()
 {
 	return _noiseWaveScale;
 }
-void FlatRingOceanGeode::setNoiseWaveScale(float value)
+void FlatRingOceanGeode::setWaveScaleFactor(float value,bool dirty)
 {
 	if (_noiseWaveScale == value)
 		return;
 	_noiseWaveScale = value;
-	_isStateDirty = true;
+	if(dirty)
+		_isStateDirty = true;
 }
 
-float FlatRingOceanGeode::getNoiseWindSpeed()
+float FlatRingOceanGeode::getWindSpeed()
 {
 	return _noiseWindSpeed;
 }
-void FlatRingOceanGeode::setNoiseWindSpeed(float value)
+void FlatRingOceanGeode::setWindSpeed(float value,bool dirty)
 {
 	if (_noiseWindSpeed == value)
 		return;
 	_noiseWindSpeed = value;
-	_isStateDirty = true;
+	if(dirty)
+		_isStateDirty = true;
 }
-
-osg::Vec2 FlatRingOceanGeode::getNoiseWindDir()
-{
-	return _noiseWindDir;
-}
-void FlatRingOceanGeode::setNoiseWindDir(osg::Vec2 dir)
+void FlatRingOceanGeode::setWindDir(osg::Vec2 dir,bool dirty)
 {
 	if (_noiseWindDir == dir)
 		return;
 	_noiseWindDir = dir;
-	_isStateDirty = true;
+	if(dirty)
+		_isStateDirty = true;
 }
 
 void FlatRingOceanGeode::setFresnelMul(float value)
@@ -669,20 +667,36 @@ void FlatRingOceanGeode::setChoppyFactor(float value)
 	_choppyFactor = value;
 	_isWaveDirty = true;
 }
+void FlatRingOceanGeode::setLightColor(const osg::Vec4f& color)
+{
+	if (_lightColor == color)
+		return;
+	_lightColor = color;
+	_isStateDirty = true;
+}
+osg::Vec4 FlatRingOceanGeode::getLightColor()
+{
+	return _lightColor;
+}
 float FlatRingOceanGeode::getChoppyFactor()
 {
 	return _choppyFactor;
 }
-void FlatRingOceanGeode::setIsChoppy(bool value)
+void FlatRingOceanGeode::setIsChoppy(bool value,bool dirty)
 {
 	if (_isChoppy == value)
 		return;
 	_isChoppy = value;
-	_isWaveDirty = true;
+	if(dirty)
+		_isWaveDirty = true;
+}
+bool FlatRingOceanGeode::isChoppy()
+{
+	return _isChoppy;
 }
 void FlatRingOceanGeode::buildWaveTextures()
 {
-	osgOcean::FFTSimulation FFTSim(getTileSize(),getNoiseWindDir(),getNoiseWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _tileResolution,_cycleTime);
+	osgOcean::FFTSimulation FFTSim(getTileSize(),getWindDirection(),getWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _tileResolution,_cycleTime);
 
 	_texturesFrame.clear();
 	_texturesFrame.resize(getFrameNum());
@@ -734,4 +748,124 @@ osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
 	tex->setResizeNonPowerOfTwoHint(false);
 	tex->setMaxAnisotropy(1.0f);
 	return tex.release();
+}
+FlatRingOceanGeode::EventHandler::EventHandler(OceanTechnique* oceanSurface) :
+	OceanTechnique::EventHandler(oceanSurface),
+	_autoDirty(true)
+{
+}
+
+bool FlatRingOceanGeode::EventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* object, osg::NodeVisitor* nv)
+{
+	// Call parent class's handle().
+	OceanTechnique::EventHandler::handle(ea, aa, object, nv);
+
+	if (ea.getHandled()) return false;
+
+	// Now we can handle this class's events.
+	switch (ea.getEventType())
+	{
+	case(osgGA::GUIEventAdapter::KEYUP):
+	{
+		// Downcast to the concrete class we're interested in.
+		FlatRingOceanGeode* fftSurface = dynamic_cast<FlatRingOceanGeode*>(_oceanSurface);
+		if (!fftSurface) return false;
+
+		// Crest foam
+		if (ea.getKey() == 'f')
+		{
+			fftSurface->enableCrestFoam(!fftSurface->isCrestFoamEnabled());
+			osg::notify(osg::NOTICE) << "Crest foam " << (fftSurface->isCrestFoamEnabled() ? "enabled" : "disabled") << std::endl;
+			return true;
+		}
+		// isChoppy
+		if (ea.getKey() == 'p')
+		{
+			fftSurface->setIsChoppy(!fftSurface->isChoppy(), _autoDirty);
+			osg::notify(osg::NOTICE) << "Choppy waves " << (fftSurface->isChoppy() ? "enabled" : "disabled") << std::endl;
+			return true;
+		}
+		// Wind speed + 0.5
+		if (ea.getKey() == 'W')
+		{
+			fftSurface->setWindSpeed(fftSurface->getWindSpeed() + 0.5, _autoDirty);
+			osg::notify(osg::NOTICE) << "Wind speed now " << fftSurface->getWindSpeed() << std::endl;
+			return true;
+		}
+		// Wind speed - 0.5
+		if (ea.getKey() == 'w')
+		{
+			fftSurface->setWindSpeed(fftSurface->getWindSpeed() - 0.5, _autoDirty);
+			osg::notify(osg::NOTICE) << "Wind speed now " << fftSurface->getWindSpeed() << std::endl;
+			return true;
+		}
+		// Scale factor + 1e-9
+		if (ea.getKey() == 'K')
+		{
+			float waveScale = fftSurface->getWaveScaleFactor();
+			fftSurface->setWaveScaleFactor(waveScale + (1e-9), _autoDirty);
+			osg::notify(osg::NOTICE) << "Wave scale factor now " << fftSurface->getWaveScaleFactor() << std::endl;
+			return true;
+		}
+		// Scale factor - 1e-9
+		if (ea.getKey() == 'k')
+		{
+			float waveScale = fftSurface->getWaveScaleFactor();
+			fftSurface->setWaveScaleFactor(waveScale - (1e-9), _autoDirty);
+			osg::notify(osg::NOTICE) << "Wave scale factor now " << fftSurface->getWaveScaleFactor() << std::endl;
+			return true;
+		}
+		// Dirty geometry
+		if (ea.getKey() == 'd')
+		{
+			osg::notify(osg::NOTICE) << "Dirtying ocean geometry" << std::endl;
+			fftSurface->dirty();
+			return true;
+		}
+		// Toggle autoDirty, if off then individual changes will be 
+		// instantaneous but the user will get no feedback until they 
+		// dirty manually, if on each change will dirty automatically.
+		if (ea.getKey() == 'D')
+		{
+			_autoDirty = !_autoDirty;
+			osg::notify(osg::NOTICE) << "AutoDirty " << (_autoDirty ? "enabled" : "disabled") << std::endl;
+			return true;
+		}
+		// Print out all current settings to the console.
+		if (ea.getKey() == 'P')
+		{
+			osg::notify(osg::NOTICE) << "Current FFTOceanSurface settings are:" << std::endl;
+			osg::notify(osg::NOTICE) << "  Endless ocean " << (fftSurface->isEndlessOceanEnabled() ? "enabled" : "disabled") << std::endl;
+			osg::notify(osg::NOTICE) << "  Crest foam " << (fftSurface->isCrestFoamEnabled() ? "enabled" : "disabled") << std::endl;
+			osg::notify(osg::NOTICE) << "  Choppy waves " << (fftSurface->isChoppy() ? "enabled" : "disabled") << std::endl;
+			osg::notify(osg::NOTICE) << "  Choppy factor " << fftSurface->getChoppyFactor() << std::endl;
+//			osg::notify(osg::NOTICE) << "  Wind direction " << fftSurface->getWindDirection() << std::endl;
+			osg::notify(osg::NOTICE) << "  Wind speed " << fftSurface->getWindSpeed() << std::endl;
+			osg::notify(osg::NOTICE) << "  Wave scale factor " << fftSurface->getWaveScaleFactor() << std::endl;
+			return true;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+
+	return false;
+}
+
+/** Get the keyboard and mouse usage of this manipulator.*/
+void FlatRingOceanGeode::EventHandler::getUsage(osg::ApplicationUsage& usage) const
+{
+	// Add parent class's keys too.
+	OceanTechnique::EventHandler::getUsage(usage);
+
+	usage.addKeyboardMouseBinding("f", "Toggle crest foam");
+	usage.addKeyboardMouseBinding("p", "Toggle choppy waves (dirties geometry if autoDirty is active)");
+	usage.addKeyboardMouseBinding("k", "Decrease wave scale factor by 1e-9 (dirties geometry if autoDirty is active)");
+	usage.addKeyboardMouseBinding("K", "Increase wave scale factor by 1e-9 (dirties geometry if autoDirty is active)");
+	usage.addKeyboardMouseBinding("w", "Decrease wind speed by 0.5 (dirties geometry if autoDirty is active)");
+	usage.addKeyboardMouseBinding("W", "Increase wind speed by 0.5 (dirties geometry if autoDirty is active)");
+	usage.addKeyboardMouseBinding("d", "Dirty geometry manually");
+	usage.addKeyboardMouseBinding("D", "Toggle autoDirty (if off, changes will require manual dirty)");
+	usage.addKeyboardMouseBinding("P", "Print out current ocean surface settings");
 }
