@@ -56,8 +56,6 @@ namespace osgOcean
 		}
 		inline bool upDateCenterPoint(const osg::Vec3f& eye)
 		{
-			return true;
-
 			if (!isEndlessOceanEnabled())
 				return false;
 			bool update = false;

@@ -51,7 +51,7 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	_choppyFactor(-2.5),
 	_isChoppy(true),
 	 _environmentMap(0)
-	, _geom(new osg::Geometry)
+	, _geom(0)
 	, _vertices(new osg::Vec3Array)
 	, _normals(new osg::Vec3Array)
 	, _texcoords(new osg::Vec2Array)
@@ -118,8 +118,12 @@ void FlatRingOceanGeode::createOceanGeometry()
 	if (getNumDrawables() > 0)
 		removeDrawables(0, getNumDrawables());
 	if (!_geom.valid())
+	{
 		_geom = new osg::Geometry();
-
+		_geom->setName("flatRingOceanGeometry");
+		_geom->setUseDisplayList(false);
+		_geom->setDataVariance(osg::Object::DYNAMIC);
+	}
 	_geom->setVertexArray(_vertices);
 	_geom->setTexCoordArray(0, _texcoords);
 	_geom->setColorArray(_colors);
@@ -134,21 +138,22 @@ void FlatRingOceanGeode::computePrimitives()
 	// First clear old primitive sets
 	if (_geom->getNumPrimitiveSets() > 0)
 		_geom->removePrimitiveSet(0, _geom->getNumPrimitiveSets());
-
-	osg::ref_ptr<osg::DrawElementsUInt> indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLE_STRIP, 0);
-
-	for (unsigned int r = 0; r < GetRSteps()-1; r++)
+	unsigned int stripSize = ((GetCircleSteps()+1) * 2)*GetRSteps();
+	osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLE_STRIP, stripSize);
+	indices->setName("flatRingOceanDrawElements");
+	unsigned int i = 0;
+	for (unsigned int r = 0; r < GetRSteps(); r++)
 	{
 		for (unsigned int c = 0; c <GetCircleSteps()+1; c++)
 		{
-			/*indices->push_back(c + r * (GetCircleSteps() + 1));
-			indices->push_back(c + (r + 1)*(GetCircleSteps() + 1));*/
-
-			indices->push_back(c);
-			indices->push_back(c+1);
+			unsigned int cFirst = c + (r) * (GetCircleSteps()+1), cSecond = c + (r+1)*(GetCircleSteps()+1);
+			(*indices)[i] = cFirst;
+			(*indices)[i+1]=cSecond;
+			i += 2;
+			//OSG_NOTICE << "indices: " << cFirst << " and " << cSecond << std::endl;
 		}
 	}
-	_geom->addPrimitiveSet(indices.get());
+	_geom->addPrimitiveSet(indices);
 
 	//2018_9_23 14:00
 	dirtyBound();
@@ -183,7 +188,7 @@ void FlatRingOceanGeode::computeVertices()
 			++ptr;
 		}
 	}
-
+	//OSG_NOTICE << "FlatRingOcean vertices size[" << ptr <<"] and ["<<_vertices->size()<<"] "<<_texcoords->size()<< std::endl;
 	_normals->resize(1);
 	(*_normals)[0] = osg::Vec3(0.0, 0.0, 1.0);
 
