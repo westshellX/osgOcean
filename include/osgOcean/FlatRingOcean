@@ -56,6 +56,8 @@ namespace osgOcean
 		}
 		inline bool upDateCenterPoint(const osg::Vec3f& eye)
 		{
+			return true;
+
 			if (!isEndlessOceanEnabled())
 				return false;
 			bool update = false;
@@ -76,14 +78,6 @@ namespace osgOcean
 		}
 		void setLightColor(const osg::Vec4f& color);
 		osg::Vec4 getLightColor();
-
-		inline void SetSkyNodeSet(bool able)
-		{
-			if (_skyNodeSet == able)
-				return;
-			_skyNodeSet = able;
-			getOrCreateStateSet()->getOrCreateUniform("skyLoadSet", osg::Uniform::BOOL)->set(_skyNodeSet);
-		}
 
 		virtual void build();
 		virtual float getSurfaceHeight() const;
@@ -238,6 +232,8 @@ namespace osgOcean
 		void setFrameNum(unsigned int value);
 		unsigned int getFrameNum();
 
+		osg::Texture2D* getTexture2DFrame(unsigned int index);
+
 		void setCycleTime(float value);
 		float getCycleTime();
 
@@ -249,6 +245,9 @@ namespace osgOcean
 
 		void setIsChoppy(bool value,bool dirty = true);
 		bool isChoppy();
+
+		void setReflDampFactor(float value);
+		float getReflDampFactor();
 
 	private:
 		float _inR;    //与FFTOceanSurface的宽度相同
@@ -268,7 +267,6 @@ namespace osgOcean
 		osg::Vec3f _waveBottomColor;
 		bool _enableReflections;
 		bool _enableRefractions;
-		bool _skyNodeSet;  //加载的是天空模型
 
 		unsigned int _lightID;
 		bool _useCrestFoam;

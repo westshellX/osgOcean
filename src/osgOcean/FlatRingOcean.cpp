@@ -4,9 +4,12 @@
 #include <osg/Material>
 #include <fstream>
 #include <osgDB/FileUtils>
+#include <osgDB/WriteFile>
 #include <osg/Notify>
 #include <osgOcean/ShaderManager>
 #include <sstream>
+#include <iomanip>
+
 #define RESOLUTION 256
 #define INITWAVESCALE 1e-8
 #define REFLECTIONDAMPING 0.35
@@ -27,7 +30,6 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	, _waveBottomColor(0.11372549019f, 0.219607843f, 0.3568627450f)
 	, _enableReflections(false)
 	,_enableRefractions(false)
-	, _skyNodeSet(false)
 	, _lightID(0)
 	,_useCrestFoam(false),
 	_foamCapBottom(2.2f),
@@ -133,16 +135,20 @@ void FlatRingOceanGeode::computePrimitives()
 	if (_geom->getNumPrimitiveSets() > 0)
 		_geom->removePrimitiveSet(0, _geom->getNumPrimitiveSets());
 
-	for (unsigned int r = 0; r < GetRSteps(); r++)
+	osg::ref_ptr<osg::DrawElementsUInt> indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLE_STRIP, 0);
+
+	for (unsigned int r = 0; r < GetRSteps()-1; r++)
 	{
-		osg::ref_ptr<osg::DrawElementsUInt> indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLE_STRIP, 0);
-		for (unsigned int c = 0; c <= GetCircleSteps(); c++)
+		for (unsigned int c = 0; c <GetCircleSteps()+1; c++)
 		{
-			indices->push_back(c + r * (GetCircleSteps() + 1));
-			indices->push_back(c + (r + 1)*(GetCircleSteps() + 1));
+			/*indices->push_back(c + r * (GetCircleSteps() + 1));
+			indices->push_back(c + (r + 1)*(GetCircleSteps() + 1));*/
+
+			indices->push_back(c);
+			indices->push_back(c+1);
 		}
-		_geom->addPrimitiveSet(indices.get());
 	}
+	_geom->addPrimitiveSet(indices.get());
 
 	//2018_9_23 14:00
 	dirtyBound();
@@ -242,7 +248,6 @@ void FlatRingOceanGeode::initStateSet()
 	_stateset->addUniform(new osg::Uniform("osgOcean_FresnelMul", _fresnelMul));
 	_stateset->addUniform(new osg::Uniform("osgOcean_EyePosition", osg::Vec3f()));
 
-	_stateset->addUniform(new osg::Uniform("osgOcean_WaterWaveMap", WAVE_MAP));
 	int sizeTemp = int(_noiseTileSize);
 	_stateset->addUniform(new osg::Uniform("tileSize",sizeTemp));    //oneTileSize
 	//_stateset->addUniform(new osg::Uniform("tileResolution", _noiseTileRes));    //oneTileRes
@@ -338,8 +343,6 @@ void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsi
 	getStateSet()->getUniform("osgOcean_NoiseCoords0")->set(computeNoiseCoords(32.f, osg::Vec2f(2.f, 4.f), 2.f, time));
 	getStateSet()->getUniform("osgOcean_NoiseCoords1")->set(computeNoiseCoords(8.f, osg::Vec2f(-4.f, 2.f), 1.f, time));
 	
-	if (_texturesFrame[frame].valid())
-		getStateSet()->setTextureAttributeAndModes(WAVE_MAP, _texturesFrame[frame].get(), osg::StateAttribute::ON);
 	getStateSet()->getUniform("currentFrame")->set(int(frame));
 
 	if (upDateCenterPoint(eye))
@@ -505,6 +508,7 @@ void FlatRingOceanGeode::setTileResolution(unsigned int s)
 	_noiseTileRes = s;
 
 	_isStateDirty = true;
+	_isWaveDirty = true;
 }
 unsigned int FlatRingOceanGeode::getTileResolution()
 {
@@ -520,6 +524,7 @@ void FlatRingOceanGeode::setTileSize(unsigned int s)
 		return;
 	_noiseTileSize = s;
 	_isStateDirty = true;
+	_isWaveDirty = true;
 }
 bool FlatRingOceanGeode::isCrestFoamEnabled()
 {
@@ -544,7 +549,18 @@ float FlatRingOceanGeode::getFoamTopHeight()
 {
 	return _foamCapTop;
 }
-
+float FlatRingOceanGeode::getReflDampFactor()
+{
+	return _reflDampFactor;
+}
+void FlatRingOceanGeode::setReflDampFactor(float value)
+{
+	if (_reflDampFactor == value)
+		return;
+	_reflDampFactor = value;
+	_isStateDirty = true;
+	_isWaveDirty = true;
+}
 void FlatRingOceanGeode::setFoamBottomHeight(float value)
 {
 	if (_foamCapBottom == value)
@@ -592,6 +608,7 @@ void FlatRingOceanGeode::setWaveScaleFactor(float value,bool dirty)
 	_noiseWaveScale = value;
 	if(dirty)
 		_isStateDirty = true;
+	_isWaveDirty = true;
 }
 
 float FlatRingOceanGeode::getWindSpeed()
@@ -605,6 +622,7 @@ void FlatRingOceanGeode::setWindSpeed(float value,bool dirty)
 	_noiseWindSpeed = value;
 	if(dirty)
 		_isStateDirty = true;
+	_isWaveDirty = true;
 }
 void FlatRingOceanGeode::setWindDir(osg::Vec2 dir,bool dirty)
 {
@@ -694,6 +712,12 @@ bool FlatRingOceanGeode::isChoppy()
 {
 	return _isChoppy;
 }
+osg::Texture2D* FlatRingOceanGeode::getTexture2DFrame(unsigned int index)
+{
+	if (index < _texturesFrame.size())
+		return _texturesFrame.at(index).get();
+	return 0;
+}
 void FlatRingOceanGeode::buildWaveTextures()
 {
 	osgOcean::FFTSimulation FFTSim(getTileSize(),getWindDirection(),getWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _tileResolution,_cycleTime);
@@ -702,6 +726,8 @@ void FlatRingOceanGeode::buildWaveTextures()
 	_texturesFrame.resize(getFrameNum());
 
 	float _pointSpacing =getTileResolution()/ getTileSize();
+
+	osg::ref_ptr<osg::Uniform> waveTexUnif = new osg::Uniform(osg::Uniform::SAMPLER_2D, "osgOcean_WaterWaveMap", getFrameNum());
 	for (unsigned int frame = 0; frame <getFrameNum(); ++frame)
 	{
 		osg::ref_ptr<osg::FloatArray> heights = new osg::FloatArray;
@@ -719,25 +745,42 @@ void FlatRingOceanGeode::buildWaveTextures()
 			FFTSim.computeDisplacements(_choppyFactor, displacements.get());
 
 		osgOcean::OceanTile tile(heights.get(), _noiseTileSize, _pointSpacing, displacements.get());
-		_texturesFrame[frame] = convertToR32F(tile);	
+		_texturesFrame[frame] = convertToR32F(tile);
+		if (_texturesFrame[frame].valid())
+		{
+			waveTexUnif->set(frame, WAVE_MAP + frame);
+			getStateSet()->setTextureAttributeAndModes(WAVE_MAP+frame, _texturesFrame[frame].get(), osg::StateAttribute::ON);
+		}
 	}
+	getStateSet()->addUniform(waveTexUnif.get());
 	_isWaveDirty = false;
 }
 osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
 {
+	static unsigned int index = 0;
+	unsigned int currentSize = index++;
+	std::stringstream imageName;
+	imageName << "oceanImage_" << currentSize << ".jpeg";
+//	OSG_NOTICE << "convet [" << imageName.str() << "begin!" << std::endl;
 	osg::ref_ptr<osg::FloatArray> waveheights = new osg::FloatArray;
 	waveheights->resize(hf.getNumVertices());
-	for (int y = 0; y < hf.getRowLen(); ++y)
+	for (unsigned int y = 0; y < hf.getRowLen(); ++y)
 	{
-		for (int x = 0; x < hf.getRowLen(); ++x)
+		for (unsigned int x = 0; x < hf.getRowLen(); ++x)
 		{
 			waveheights->at(y*hf.getRowLen() + x) = hf.getVertex(x, y).z();
+
+//			OSG_NOTICE << " " <<std::setw(5)<< hf.getVertex(x, y).z();
 		}
+//		OSG_NOTICE << std::endl;
 	}
 	osg::ref_ptr<osg::Image> image = new osg::Image();
 	image->allocateImage(hf.getRowLen(), hf.getRowLen(), 1, GL_RED, GL_FLOAT);
 	image->setInternalTextureFormat(GL_R32F);
 	memcpy(image->data(), &waveheights->front(), sizeof(float) * waveheights->size());
+
+	//OSG_NOTICE << "convet [" << imageName.str() << "end!" << std::endl;
+	//osgDB::writeImageFile(*image.get(), imageName.str());
 
 	osg::ref_ptr<osg::Texture2D> tex = new osg::Texture2D(image);
 	tex->setInternalFormat(GL_R32F);
