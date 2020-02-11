@@ -197,6 +197,11 @@ namespace osgOcean
 			{
 				fftsurface->enableReflections(enable);
 			}
+			osg::ref_ptr<osgOcean::FlatRingOceanGeode> flat=dynamic_cast<osgOcean::FlatRingOceanGeode*> (_oceanSurface.get());
+			if(flat.valid())
+			{
+			    flat->enableReflections(enable);
+			}
 			if(_farOceanSurfaceGeode.valid())
 			{
 				_farOceanSurfaceGeode->enableReflections(enable);

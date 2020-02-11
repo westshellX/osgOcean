@@ -34,8 +34,7 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	,_useCrestFoam(false),
 	_foamCapBottom(2.2f),
 	_foamCapTop(3.0f),
-	_tileResolution(256),
-	_tileResInv(1.f / float(256)),
+	_noiseTileResInv(1.f / float(256)),
 	_fresnelMul(0.7),
 	_noiseTileSize(32),
 	_noiseTileRes(256),
@@ -65,9 +64,9 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 		setUserData(new FlatOceanDataType(*this, _NUMFRAMES, 25));
 #endif
 		osg::ref_ptr<FlatRingOceanGeodeCallback> _callback = new FlatRingOceanGeodeCallback;
-		setEventCallback(_callback.get());
+		setEventCallback(new OceanAnimationEventHandler);
 		setUpdateCallback(_callback.get());
-		setCullCallback(_callback.get());
+		//setCullCallback(_callback.get());
 		osgOcean::ShaderManager::instance().setGlobalDefinition("osgOcean_LightID", _lightID);
 }
 
@@ -220,7 +219,7 @@ void FlatRingOceanGeode::initStateSet()
 	_stateset->addUniform(new osg::Uniform("osgOcean_FoamCapBottom", _foamCapBottom));
 	_stateset->addUniform(new osg::Uniform("osgOcean_FoamCapTop", _foamCapTop));
 	_stateset->addUniform(new osg::Uniform("osgOcean_FoamMap", FOAM_MAP));
-	_stateset->addUniform(new osg::Uniform("osgOcean_FoamScale", _tileResInv*30.f));
+	_stateset->addUniform(new osg::Uniform("osgOcean_FoamScale", _noiseTileResInv*30.f));
 
 	//反射与折射
 	_stateset->addUniform(new osg::Uniform("osgOcean_EnableReflections", _enableReflections));
@@ -257,6 +256,8 @@ void FlatRingOceanGeode::initStateSet()
 	_stateset->addUniform(new osg::Uniform("tileSize",sizeTemp));    //oneTileSize
 	//_stateset->addUniform(new osg::Uniform("tileResolution", _noiseTileRes));    //oneTileRes
 	int numTiles = 2*(int)_outR / _noiseTileRes;
+	if (numTiles < 1)
+		numTiles = 17;
 	_stateset->addUniform(new osg::Uniform("numTiles",numTiles ));                 //tileNum 
 	_stateset->addUniform(new osg::Uniform("currentFrame",0));                 //frame
 
@@ -506,9 +507,8 @@ void FlatRingOceanGeode::setTileResolution(unsigned int s)
 {
 	if (s == 0)
 		return;
-	_tileResolution = s;
 
-	_tileResInv = 1.f / float(s);
+	_noiseTileResInv = 1.f / float(s);
 
 	_noiseTileRes = s;
 
@@ -517,7 +517,7 @@ void FlatRingOceanGeode::setTileResolution(unsigned int s)
 }
 unsigned int FlatRingOceanGeode::getTileResolution()
 {
-	return _tileResolution;
+	return _noiseTileRes;
 }
 unsigned int FlatRingOceanGeode::getTileSize()
 {
@@ -725,7 +725,7 @@ osg::Texture2D* FlatRingOceanGeode::getTexture2DFrame(unsigned int index)
 }
 void FlatRingOceanGeode::buildWaveTextures()
 {
-	osgOcean::FFTSimulation FFTSim(getTileSize(),getWindDirection(),getWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _tileResolution,_cycleTime);
+	osgOcean::FFTSimulation FFTSim(getTileSize(),getWindDirection(),getWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _noiseTileRes,_cycleTime);
 
 	_texturesFrame.clear();
 	_texturesFrame.resize(getFrameNum());
@@ -796,6 +796,33 @@ osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
 	tex->setResizeNonPowerOfTwoHint(false);
 	tex->setMaxAnisotropy(1.0f);
 	return tex.release();
+}
+bool FlatRingOceanGeode::OceanAnimationEventHandler::handle(osgGA::Event* event, osg::Object* object, osg::NodeVisitor* nv)
+{
+	osg::ref_ptr<FlatOceanDataType> oceanData = dynamic_cast<FlatOceanDataType*> (object->getUserData());
+	if (oceanData.valid())
+	{
+		osgGA::GUIEventAdapter* ea = event->asGUIEventAdapter();
+		if (ea)
+		{
+			//更新不至于太频繁
+			if (ea->getEventType() == osgGA::GUIEventAdapter::FRAME)
+			{
+				osgGA::EventVisitor* ev = static_cast<osgGA::EventVisitor*>(nv);
+				if (ev)
+				{
+					osg::View* view = dynamic_cast<osg::View*>(ev->getActionAdapter());
+					if (view)
+					{
+						osg::Vec3f centre, up, eye;
+						view->getCamera()->getViewMatrixAsLookAt(eye, centre, up);
+						oceanData->setEye(eye);
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 FlatRingOceanGeode::EventHandler::EventHandler(OceanTechnique* oceanSurface) :
 	OceanTechnique::EventHandler(oceanSurface),

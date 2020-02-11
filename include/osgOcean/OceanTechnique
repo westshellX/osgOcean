@@ -84,7 +84,6 @@ namespace osgOcean
         protected:
             OceanTechnique* _oceanSurface;
         };
-
         /** Virtual constructor for OceanTechnique::EventHandler - override in
          * derived classes to return subclass-specific handler if needed.
          */

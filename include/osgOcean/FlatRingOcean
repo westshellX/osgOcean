@@ -60,9 +60,13 @@ namespace osgOcean
 				return false;
 			bool update = false;
 			osg::Vec2 moveVector = osg::Vec2(eye.x() - GetCenterPoint().x(), eye.y() - GetCenterPoint().y());
-
+			if(GetInR()<100) //一般都是100米左右的大船
+			{
+			    if(moveVector.length()>0.25*GetOutR())
+			       update=true;
+		    }
 			//2018_9_23 14:00 优化一点是一点
-			if (moveVector.length() > 0.25*GetInR())
+			else if (moveVector.length() > 0.25*GetInR())
 				update = true;
 			return update;
 		}
@@ -270,8 +274,7 @@ namespace osgOcean
 		bool _useCrestFoam;
 		float       _foamCapTop;            /**< Maximum height for foam caps. */
 		float       _foamCapBottom;         /**< Minimum height for foam caps. */
-		unsigned int _tileResolution;       /**< Size of tile in world width/height. */
-		float        _tileResInv;           /**< 1 / _tileResoltion; */
+		float        _noiseTileResInv;           /**< 1 / _tileResoltion; */
 		float       _fresnelMul;            /**< Fresnel multiplier uniform, typical values: (0.5-0.8). */
 		unsigned int _noiseTileSize;        /**< Size of Noise FFT grid */
 		unsigned int _noiseTileRes;         /**< Size of noise tile in world width/height. */
@@ -336,8 +339,13 @@ namespace osgOcean
 		{
 			virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
 		};
-
-		        /** This class overrides OceanTechnique::EventHandler to provide 
+		class OSGOCEAN_EXPORT OceanAnimationEventHandler:public osgGA::EventHandler
+		{
+		public:
+		    virtual bool handle(osgGA::Event* event, osg::Object* object, osg::NodeVisitor* nv);
+		};
+		
+		/** This class overrides OceanTechnique::EventHandler to provide 
          *  support for manipulating this particular subclass of 
          *  OceanTechnique. Note that the method signatures are identical, 
          *  and that the FFTOceanSurface will be accessed through the base 
