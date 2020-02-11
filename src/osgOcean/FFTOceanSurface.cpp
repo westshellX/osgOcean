@@ -87,7 +87,7 @@ FFTOceanSurface::FFTOceanSurface( unsigned int FFTGridSize,
 	setUserData( new OceanDataType(*this, _NUMFRAMES, 25) );
 	setCullCallback( new OceanAnimationCallback );
 	setUpdateCallback( new OceanAnimationCallback );
-	//setEventCallback(new OceanAnimationEventHandler);
+	setEventCallback(new OceanAnimationEventHandler);
 }
 
 FFTOceanSurface::FFTOceanSurface( const FFTOceanSurface& copy, const osg::CopyOp& copyop ):
@@ -1643,7 +1643,6 @@ bool FFTOceanSurface::OceanAnimationEventHandler::handle(osgGA::Event* event, os
 						osg::Vec3f centre, up, eye;
 						view->getCamera()->getViewMatrixAsLookAt(eye, centre, up);
 						oceanData->setEye(eye);
-						OSG_NOTICE << "Frame eye:" << std::endl;
 					}
 				}
 			}
