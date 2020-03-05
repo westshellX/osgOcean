@@ -130,10 +130,10 @@ void WaterTrochoids::packWaves(osg::FloatArray* constants) const
 		(*constants)[ptr+3] = _waves[j+3].ky;
 		ptr += 4;
 		// amplitude / k
-		(*constants)[ptr+0] = _waves[j+0].Ainvk;
-		(*constants)[ptr+1] = _waves[j+1].Ainvk;
-		(*constants)[ptr+2] = _waves[j+2].Ainvk;
-		(*constants)[ptr+3] = _waves[j+3].Ainvk;
+		(*constants)[ptr + 0] = _waves[j + 0].Ainvk;
+		(*constants)[ptr + 1] = _waves[j + 1].Ainvk;
+		(*constants)[ptr + 2] = _waves[j + 2].Ainvk;
+		(*constants)[ptr + 3] = _waves[j + 3].Ainvk;
 		ptr += 4;
 		// amplitude
 		(*constants)[ptr+0] = _waves[j+0].A;
