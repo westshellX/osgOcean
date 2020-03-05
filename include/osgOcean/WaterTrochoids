@@ -40,9 +40,6 @@ namespace osgOcean
 			float phase;    // current phase
 			float Ainvk;    // amplitude/K module
 		};
-
-		std::vector<Wave> _waves;
-
 		// Parameters used for the waves initialization
 		float _amplitude;    // base amplitude (must be <1.0 or they loop over themselves)
 		float _amplitudeMul; // amplitude multiplier
@@ -50,6 +47,9 @@ namespace osgOcean
 		float _lambdaMul;    // wavelength multiplier
 		float _direction;    // main waves direction
 		float _angleDev;     // deviation from main direction
+
+	public:
+		std::vector<Wave> _waves;
 
 	public:
 		WaterTrochoids( void );
