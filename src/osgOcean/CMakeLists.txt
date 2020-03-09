@@ -63,6 +63,8 @@ SET( LIB_HEADERS
   ${HEADER_PATH}/Export
   ${HEADER_PATH}/Version
   ${HEADER_PATH}/FlatRingOcean
+  ${HEADER_PATH}/GeneralMesh.h
+  ${HEADER_PATH}/SmuGerstnerWave.h
 )
 
 # Adds headers to the "Header Files" group in visual studio
@@ -99,6 +101,8 @@ ADD_LIBRARY(
   WaterTrochoids.cpp
   Version.cpp
   FlatRingOcean.cpp
+  GeneralMesh.cpp
+  SmuGerstnerWave.cpp
 )
 
 SET_TARGET_PROPERTIES(
