@@ -902,7 +902,7 @@ osg::MatrixTransform* OceanScene::getOceanTransform()
 osg::Camera* OceanScene::gaussianPass( osg::TextureRectangle* inputTexture, osg::TextureRectangle* outputTexture, bool isXAxis )
 {
 	std::string gaussian_vertex,gaussian1_fragment,gaussian2_fragment;
-	if(_loadShaderFromFile)
+	if(!_loadShaderFromFile)
 	{
 		gaussian_vertex = 
 			"void main(void)\n"
