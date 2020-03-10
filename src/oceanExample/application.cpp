@@ -354,6 +354,7 @@ public:
                 
                 _oceanScene = new osgOcean::OceanScene( _oceanSurface.get() );
                 _oceanScene->setLightID(0);
+				_oceanScene->setLoadShaderFromFile(true);
                 //_oceanScene->enableReflections(true);
                 _oceanScene->enableRefractions(true);
 
