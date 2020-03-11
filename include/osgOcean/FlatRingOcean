@@ -99,17 +99,19 @@ namespace osgOcean
 		void buildWaveTextures();
 	    osg::Texture2D* convertToR32F(const osgOcean::OceanTile hf);
 
-		inline void SetWaveTopColor(osg::Vec3 color)
+		inline void setWaveTopColor(osg::Vec3 color)
 		{
-			_waveTopColor = color;
-			osg::Vec4f waveTop = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveTopColor, 1.f));
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveTop", osg::Uniform::FLOAT_VEC4)->set(osg::Vec4(waveTop));
+			if(_waveTopColor ==color)
+			    return;
+			_waveTopColor=color;
+			_isStateDirty=true;
 		}
-		inline void SetWaveBottomColor(osg::Vec3 color)
+		inline void setWaveBottomColor(osg::Vec3 color)
 		{
-			_waveBottomColor = color;
-			osg::Vec4f waveBot = colorLerp(_lightColor, osg::Vec4f(), osg::Vec4f(_waveBottomColor, 1.f));
-			getOrCreateStateSet()->getOrCreateUniform("osgOcean_WaveBot", osg::Uniform::FLOAT_VEC4)->set(waveBot);
+			if(_waveBottomColor == color)
+			    return;
+			_waveBottomColor=color;
+			_isStateDirty=true;
 		}
 		inline void SetEnvironmentMap(osg::TextureCubeMap* environmentMap)
 		{

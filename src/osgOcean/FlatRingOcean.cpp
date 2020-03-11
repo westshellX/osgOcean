@@ -196,7 +196,7 @@ void FlatRingOceanGeode::computeVertices()
 }
 void FlatRingOceanGeode::initStateSet()
 {
-	osg::notify(osg::INFO) << "FFTOceanSurface::initStateSet()" << std::endl;
+	osg::notify(osg::INFO) << "FlatRingOcean::initStateSet()" << std::endl;
 	_stateset = new osg::StateSet;
 
 	_stateset->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
@@ -278,7 +278,7 @@ void FlatRingOceanGeode::initStateSet()
 
 	_isStateDirty = false;
 
-	osg::notify(osg::INFO) << "FFTOceanSurface::initStateSet() Complete." << std::endl;
+	osg::notify(osg::INFO) << "FlatRingOcean::initStateSet() Complete." << std::endl;
 }
 
 
@@ -909,7 +909,7 @@ bool FlatRingOceanGeode::EventHandler::handle(const osgGA::GUIEventAdapter& ea, 
 		// Print out all current settings to the console.
 		if (ea.getKey() == 'P')
 		{
-			osg::notify(osg::NOTICE) << "Current FFTOceanSurface settings are:" << std::endl;
+			osg::notify(osg::NOTICE) << "Current FlatRingOcean settings are:" << std::endl;
 			osg::notify(osg::NOTICE) << "  Endless ocean " << (fftSurface->isEndlessOceanEnabled() ? "enabled" : "disabled") << std::endl;
 			osg::notify(osg::NOTICE) << "  Crest foam " << (fftSurface->isCrestFoamEnabled() ? "enabled" : "disabled") << std::endl;
 			osg::notify(osg::NOTICE) << "  Choppy waves " << (fftSurface->isChoppy() ? "enabled" : "disabled") << std::endl;

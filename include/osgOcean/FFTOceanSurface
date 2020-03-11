@@ -58,7 +58,6 @@ namespace osgOcean
         float        _tileResInv;           /**< 1 / _tileResoltion; */
         unsigned int _noiseTileRes;         /**< Size of noise tile in world width/height. */
         unsigned int _numTiles;             /**< Number of tiles on width/height. */
-        unsigned int _totalPoints;          /**< Total number of points on width/height. */ 
         float        _pointSpacing;         /**< Spacing between points in real world. */
         osg::Vec2f   _windDirection;        /**< Direction of wind. */
         osg::Vec2f   _noiseWindDir;         /**< Direction of wind for noise tile. */
