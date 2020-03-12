@@ -22,13 +22,13 @@ namespace osgOcean
 
 		~FlatRingOceanGeode();
 
-		void SetInR(float w);
-		float GetInR();
+		void setInR(float w);
+		float getInR();
 
-		void SetOutR(float l);
-		float GetOutR();
+		void setOutR(float l);
+		float getOutR();
 
-		float GetOceanWidth();
+		float getOceanWidth();
 
 		inline void setSurfaceHeight(float h)
 		{
@@ -60,13 +60,13 @@ namespace osgOcean
 				return false;
 			bool update = false;
 			osg::Vec2 moveVector = osg::Vec2(eye.x() - GetCenterPoint().x(), eye.y() - GetCenterPoint().y());
-			if(GetInR()<100) //一般都是100米左右的大船
+			if(getInR()<100) //一般都是100米左右的大船
 			{
-			    if(moveVector.length()>0.25*GetOutR())
+			    if(moveVector.length()>0.25*getOutR())
 			       update=true;
 		    }
 			//2018_9_23 14:00 优化一点是一点
-			else if (moveVector.length() > 0.25*GetInR())
+			else if (moveVector.length() > 0.25*getInR())
 				update = true;
 			return update;
 		}

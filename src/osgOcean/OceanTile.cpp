@@ -35,7 +35,51 @@ OceanTile::OceanTile( void ):
 	_minHeight(0),
 	_maxHeight(0)
 {}
+OceanTile::OceanTile(const unsigned int resolution, const float spacing)
+	:_resolution(resolution)
+	,_rowLength(_resolution+1)
+	,_numVertices(_rowLength*_rowLength)
+	,_vertices(new osg::Vec3Array)
+	,_normals(new osg::Vec3Array(_numVertices))
+	,_spacing(spacing),
+	_maxDelta(0.f),
+	_minHeight(FLT_MAX),
+	_maxHeight(-FLT_MAX)
+{
+	_vertices->reserve(_numVertices);
 
+#ifdef DEBUG_DATA
+	static int count = 0;
+	std::stringstream ss;
+	ss << "Tile_" << count << ".txt";
+	std::ofstream outFile(ss.str().c_str());
+	outFile << _rowLength << std::endl;
+	++count;
+#endif
+
+	osg::Vec3f v;
+
+	for (int y = 0; y <= (int)_resolution; ++y)
+	{
+		for (int x = 0; x <= (int)_resolution; ++x)
+		{
+
+#ifdef DEBUG_DATA
+			outFile << v.x() << std::endl;
+			outFile << v.y() << std::endl;
+			outFile << v.z() << std::endl;
+#endif
+			_vertices->push_back(v);
+		}
+	}
+
+#ifdef DEBUG_DATA
+	outFile.close();
+#endif
+
+	computeNormals();
+	//computeMaxDelta();
+}
 OceanTile::OceanTile( osg::FloatArray* heights, 
                       unsigned int resolution, 
                       const float spacing, 

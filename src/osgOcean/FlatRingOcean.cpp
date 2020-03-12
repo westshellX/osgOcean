@@ -74,27 +74,27 @@ FlatRingOceanGeode::~FlatRingOceanGeode()
 {
 }
 
-void FlatRingOceanGeode::SetInR(float w)
+void FlatRingOceanGeode::setInR(float w)
 {
 	_inR = w;
 	_isDirty = true;
 }
-float FlatRingOceanGeode::GetInR()
+float FlatRingOceanGeode::getInR()
 {
 	return _inR;
 }
-void FlatRingOceanGeode::SetOutR(float l)
+void FlatRingOceanGeode::setOutR(float l)
 {
 	_outR = l;
 	_isDirty = true;
 }
-float FlatRingOceanGeode::GetOutR()
+float FlatRingOceanGeode::getOutR()
 {
 	return _outR;
 }
-float FlatRingOceanGeode::GetOceanWidth()
+float FlatRingOceanGeode::getOceanWidth()
 {
-	return GetOutR();
+	return getOutR();
 }
 void FlatRingOceanGeode::build()
 {
@@ -166,7 +166,7 @@ void FlatRingOceanGeode::computeVertices()
 
 	double x, y, z, R, sin_t, cos_t;
 	double thetaDelta = 2 * osg::PI / GetCircleSteps();
-	double RDelta = (GetOutR() - GetInR()) / GetRSteps();
+	double RDelta = (getOutR() - getInR()) / GetRSteps();
 
 	double scale;
 
@@ -174,7 +174,7 @@ void FlatRingOceanGeode::computeVertices()
 	{
 		for (unsigned int j = 0; j <= GetCircleSteps(); j++)
 		{
-			R = GetInR() + i * RDelta;
+			R = getInR() + i * RDelta;
 			sin_t = sin(j*thetaDelta);
 			cos_t = cos(j*thetaDelta);
 			x = GetCenterPoint().x() + R * cos_t;
@@ -182,7 +182,7 @@ void FlatRingOceanGeode::computeVertices()
 			z = getSurfaceHeight();
 
 			(*_vertices)[ptr] = osg::Vec3(x, y, z);
-			scale = R / GetOutR();
+			scale = R / getOutR();
 			(*_texcoords)[ptr] = osg::Vec2(0.5*(1 + scale * cos_t), 0.5*(1 + scale * sin_t));
 			++ptr;
 		}
@@ -298,7 +298,7 @@ osg::Vec3f FlatRingOceanGeode::computeNoiseCoords(float noiseSize, const osg::Ve
 {
 	float length = noiseSize * movement.length();
 	float totalTime = length / speed;
-	float diff = GetOutR() - GetInR();
+	float diff = getOutR() - getInR();
 	if (abs(diff) < 0.0001)
 		diff = 1; //·ÀÖ¹ÎªÁã
 	float tileScale = 1.0 / (diff)* noiseSize;

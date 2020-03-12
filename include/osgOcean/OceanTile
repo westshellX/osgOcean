@@ -48,6 +48,9 @@ namespace osgOcean
         */
         OceanTile( void );
 
+		//GeneralMesh
+		OceanTile(const unsigned int resolution,const float spacing);
+
         /** 
         * Constructor.
         * Copies heights into _vertices adding an extra row and column as a skirt, size: (N+1)*(N+1).
