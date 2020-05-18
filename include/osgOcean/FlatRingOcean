@@ -1,5 +1,5 @@
-#ifndef FLATRECTOCEAN_H
-#define FLATRECTOCEAN_H
+#ifndef FLATRECTOCEAN
+#define FLATRECTOCEAN
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <osg/MatrixTransform>
@@ -353,10 +353,10 @@ namespace osgOcean
          *  and that the FFTOceanSurface will be accessed through the base 
          *  class OceanTechnique pointer.
          */
-        class EventHandler : public OceanTechnique::EventHandler
+        class EventHandler : public osgOcean::OceanTechnique::EventHandler
         {
         public:
-            EventHandler(OceanTechnique* oceanSurface);
+            EventHandler(osgOcean::OceanTechnique* oceanSurface);
             virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* object, osg::NodeVisitor* nv);
             virtual void getUsage(osg::ApplicationUsage& usage) const;
         protected:

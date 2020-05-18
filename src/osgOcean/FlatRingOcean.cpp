@@ -134,6 +134,7 @@ void FlatRingOceanGeode::createOceanGeometry()
 }
 void FlatRingOceanGeode::computePrimitives()
 {
+	return;
 	// First clear old primitive sets
 	if (_geom->getNumPrimitiveSets() > 0)
 		_geom->removePrimitiveSet(0, _geom->getNumPrimitiveSets());
@@ -149,7 +150,7 @@ void FlatRingOceanGeode::computePrimitives()
 			(*indices)[i] = cFirst;
 			(*indices)[i+1]=cSecond;
 			i += 2;
-			//OSG_NOTICE << "indices: " << cFirst << " and " << cSecond << std::endl;
+			OSG_NOTICE << "indices: " << cFirst << " and " << cSecond << std::endl;
 		}
 	}
 	_geom->addPrimitiveSet(indices);
@@ -159,6 +160,7 @@ void FlatRingOceanGeode::computePrimitives()
 }
 void FlatRingOceanGeode::computeVertices()
 {
+	//return;
 	_vertices->resize((GetRSteps() + 1)*(GetCircleSteps() + 1));
 	_texcoords->resize((GetRSteps() + 1)*(GetCircleSteps() + 1));
 
@@ -263,8 +265,8 @@ void FlatRingOceanGeode::initStateSet()
 
 	osg::ref_ptr<osg::Program> program = createShader();
 
-	if (program.valid())
-		_stateset->setAttributeAndModes(program.get(), osg::StateAttribute::ON);
+	//if (program.valid())
+	//	_stateset->setAttributeAndModes(program.get(), osg::StateAttribute::ON);
 
 	// If shaders are enabled, the final color will be determined by the 
 	// shader so we need a white base color. But on the fixed pipeline the
@@ -824,8 +826,8 @@ bool FlatRingOceanGeode::OceanAnimationEventHandler::handle(osgGA::Event* event,
 	}
 	return false;
 }
-FlatRingOceanGeode::EventHandler::EventHandler(OceanTechnique* oceanSurface) :
-	OceanTechnique::EventHandler(oceanSurface),
+FlatRingOceanGeode::EventHandler::EventHandler(osgOcean::OceanTechnique* oceanSurface) :
+	osgOcean::OceanTechnique::EventHandler(oceanSurface),
 	_autoDirty(true)
 {
 }
@@ -833,7 +835,7 @@ FlatRingOceanGeode::EventHandler::EventHandler(OceanTechnique* oceanSurface) :
 bool FlatRingOceanGeode::EventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object* object, osg::NodeVisitor* nv)
 {
 	// Call parent class's handle().
-	OceanTechnique::EventHandler::handle(ea, aa, object, nv);
+	osgOcean::OceanTechnique::EventHandler::handle(ea, aa, object, nv);
 
 	if (ea.getHandled()) return false;
 
@@ -932,7 +934,7 @@ bool FlatRingOceanGeode::EventHandler::handle(const osgGA::GUIEventAdapter& ea, 
 void FlatRingOceanGeode::EventHandler::getUsage(osg::ApplicationUsage& usage) const
 {
 	// Add parent class's keys too.
-	OceanTechnique::EventHandler::getUsage(usage);
+	osgOcean::OceanTechnique::EventHandler::getUsage(usage);
 
 	usage.addKeyboardMouseBinding("f", "Toggle crest foam");
 	usage.addKeyboardMouseBinding("p", "Toggle choppy waves (dirties geometry if autoDirty is active)");
