@@ -36,30 +36,30 @@ namespace osgOcean
 			_isDirty = true;
 		}
 
-		inline unsigned int GetCircleSteps() { return _circleSteps; }
-		inline void SetCirlceSteps(unsigned int wS)
+		inline unsigned int getCircleSteps() { return _circleSteps; }
+		inline void setCirlceSteps(unsigned int wS)
 		{
 			_circleSteps = wS;
 			_isDirty = true;
 		}
 
-		inline unsigned int GetRSteps() { return _rSteps; }
-		inline void SetRSteps(unsigned int lS)
+		inline unsigned int getRSteps() { return _rSteps; }
+		inline void setRSteps(unsigned int lS)
 		{
 			_rSteps = lS;
 			_isDirty = true;
 		}
 
-		inline void SetCenterPoint(osg::Vec2 pos)
+		inline void setCenterPoint(osg::Vec2 pos)
 		{
 			_centerPoint = pos;
 		}
-		inline bool upDateCenterPoint(const osg::Vec3f& eye)
+		inline bool updateCenterPoint(const osg::Vec3f& eye)
 		{
 			if (!isEndlessOceanEnabled())
 				return false;
 			bool update = false;
-			osg::Vec2 moveVector = osg::Vec2(eye.x() - GetCenterPoint().x(), eye.y() - GetCenterPoint().y());
+			osg::Vec2 moveVector = osg::Vec2(eye.x() - getCenterPoint().x(), eye.y() - getCenterPoint().y());
 			if(getInR()<100) //一般都是100米左右的大船
 			{
 			    if(moveVector.length()>0.25*getOutR())
@@ -70,7 +70,7 @@ namespace osgOcean
 				update = true;
 			return update;
 		}
-		inline osg::Vec2 GetCenterPoint() { return _centerPoint; }
+		inline osg::Vec2 getCenterPoint() { return _centerPoint; }
 
 		inline void setLightID(unsigned int id) {
 			if (_lightID == id)
@@ -94,7 +94,7 @@ namespace osgOcean
 		//主要是设置远处海平面的颜色
 		void initStateSet();
 
-		void UpdateOcean(const osg::Vec3f& eye, const double& dt = 0,unsigned int frame=0);
+		void updateOcean(const osg::Vec3f& eye, const double& dt = 0,unsigned int frame=0);
 
 		void buildWaveTextures();
 	    osg::Texture2D* convertToR32F(const osgOcean::OceanTile hf);
@@ -113,12 +113,12 @@ namespace osgOcean
 			_waveBottomColor=color;
 			_isStateDirty=true;
 		}
-		inline void SetEnvironmentMap(osg::TextureCubeMap* environmentMap)
+		inline void setEnvironmentMap(osg::TextureCubeMap* environmentMap)
 		{
 			_environmentMap = environmentMap;
 			_isStateDirty = true;
 		}
-		inline osg::TextureCubeMap* GetEnvironmetMap()
+		inline osg::TextureCubeMap* getEnvironmetMap()
 		{
 			return _environmentMap.get();
 		}

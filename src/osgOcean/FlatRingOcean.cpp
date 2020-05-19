@@ -138,15 +138,15 @@ void FlatRingOceanGeode::computePrimitives()
 	// First clear old primitive sets
 	if (_geom->getNumPrimitiveSets() > 0)
 		_geom->removePrimitiveSet(0, _geom->getNumPrimitiveSets());
-	unsigned int stripSize = ((GetCircleSteps()+1) * 2)*GetRSteps();
+	unsigned int stripSize = ((getCircleSteps()+1) * 2)*getRSteps();
 	osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLE_STRIP, stripSize);
 	indices->setName("flatRingOceanDrawElements");
 	unsigned int i = 0;
-	for (unsigned int r = 0; r < GetRSteps(); r++)
+	for (unsigned int r = 0; r < getRSteps(); r++)
 	{
-		for (unsigned int c = 0; c <GetCircleSteps()+1; c++)
+		for (unsigned int c = 0; c <getCircleSteps()+1; c++)
 		{
-			unsigned int cFirst = c + (r) * (GetCircleSteps()+1), cSecond = c + (r+1)*(GetCircleSteps()+1);
+			unsigned int cFirst = c + (r) * (getCircleSteps()+1), cSecond = c + (r+1)*(getCircleSteps()+1);
 			(*indices)[i] = cFirst;
 			(*indices)[i+1]=cSecond;
 			i += 2;
@@ -161,26 +161,26 @@ void FlatRingOceanGeode::computePrimitives()
 void FlatRingOceanGeode::computeVertices()
 {
 	//return;
-	_vertices->resize((GetRSteps() + 1)*(GetCircleSteps() + 1));
-	_texcoords->resize((GetRSteps() + 1)*(GetCircleSteps() + 1));
+	_vertices->resize((getRSteps() + 1)*(getCircleSteps() + 1));
+	_texcoords->resize((getRSteps() + 1)*(getCircleSteps() + 1));
 
 	unsigned int ptr = 0;
 
 	double x, y, z, R, sin_t, cos_t;
-	double thetaDelta = 2 * osg::PI / GetCircleSteps();
-	double RDelta = (getOutR() - getInR()) / GetRSteps();
+	double thetaDelta = 2 * osg::PI / getCircleSteps();
+	double RDelta = (getOutR() - getInR()) / getRSteps();
 
 	double scale;
 
-	for (unsigned int i = 0; i <= GetRSteps(); i++)
+	for (unsigned int i = 0; i <= getRSteps(); i++)
 	{
-		for (unsigned int j = 0; j <= GetCircleSteps(); j++)
+		for (unsigned int j = 0; j <= getCircleSteps(); j++)
 		{
 			R = getInR() + i * RDelta;
 			sin_t = sin(j*thetaDelta);
 			cos_t = cos(j*thetaDelta);
-			x = GetCenterPoint().x() + R * cos_t;
-			y = GetCenterPoint().y() + R * sin_t;
+			x = getCenterPoint().x() + R * cos_t;
+			y = getCenterPoint().y() + R * sin_t;
 			z = getSurfaceHeight();
 
 			(*_vertices)[ptr] = osg::Vec3(x, y, z);
@@ -335,7 +335,7 @@ osg::Program* FlatRingOceanGeode::createShader()
 	return osgOcean::ShaderManager::instance().createProgram(shaderName, vertFile, fragmentFile, true);
 }
 
-void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsigned int frame)
+void FlatRingOceanGeode::updateOcean(const osg::Vec3f& eye,const double& dt,unsigned int frame)
 {
 	if (_isDirty)
 		build();
@@ -353,9 +353,9 @@ void FlatRingOceanGeode::UpdateOcean(const osg::Vec3f& eye,const double& dt,unsi
 	
 	getStateSet()->getUniform("currentFrame")->set(int(frame));
 
-	if (upDateCenterPoint(eye))
+	if (updateCenterPoint(eye))
 	{
-		SetCenterPoint(osg::Vec2(eye.x(), eye.y()));
+		setCenterPoint(osg::Vec2(eye.x(), eye.y()));
 		computeVertices();
 		computePrimitives();
 	}
@@ -436,7 +436,7 @@ void FlatRingOceanGeode::FlatOceanDataType::updateOcean(void)
 
 		_time = fmod(_time, _msPerFrame);
 	}
-	_oceanSurface.UpdateOcean(_eye,dt,_frame);
+	_oceanSurface.updateOcean(_eye,dt,_frame);
 }
 #endif
 void FlatRingOceanGeode::FlatRingOceanGeodeCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
@@ -447,7 +447,7 @@ void FlatRingOceanGeode::FlatRingOceanGeodeCallback::operator()(osg::Node* node,
 	{
 		if (nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR)
 		{
-			_flatRingOceanGeode->UpdateOcean(_flatRingOceanGeode->getEye());
+			_flatRingOceanGeode->updateOcean(_flatRingOceanGeode->getEye());
 		}
 		else if (nv->getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
 		{
