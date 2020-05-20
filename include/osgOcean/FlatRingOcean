@@ -254,6 +254,9 @@ namespace osgOcean
 		void setReflDampFactor(float value);
 		float getReflDampFactor();
 
+		bool getVideoCardState();
+		void setVideoCardState(bool on);
+
 	private:
 		float _inR;    //与FFTOceanSurface的宽度相同
 		float _outR;
@@ -303,6 +306,7 @@ namespace osgOcean
 		osg::ref_ptr<osg::Vec2Array> _texcoords;
 		osg::ref_ptr<osg::Vec4Array> _colors;
 		bool _isEndless;
+		bool _isCardNoWarning;
 
 	    std::vector<osg::ref_ptr<osg::Texture2D>> _texturesFrame;
 

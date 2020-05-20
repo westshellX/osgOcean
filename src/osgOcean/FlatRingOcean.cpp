@@ -56,6 +56,7 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	, _texcoords(new osg::Vec2Array)
 	, _colors(new osg::Vec4Array)
 	,_isEndless(false)
+	,_isCardNoWarning(true)
 #if MODE_2018_9_23 
 	, _eye(osg::Vec3d(0.0, 0.0, 0.0))
 {
@@ -150,7 +151,7 @@ void FlatRingOceanGeode::computePrimitives()
 			(*indices)[i] = cFirst;
 			(*indices)[i+1]=cSecond;
 			i += 2;
-			OSG_NOTICE << "indices: " << cFirst << " and " << cSecond << std::endl;
+			//OSG_NOTICE << "indices: " << cFirst << " and " << cSecond << std::endl;
 		}
 	}
 	_geom->addPrimitiveSet(indices);
@@ -330,9 +331,13 @@ osg::ref_ptr<osg::Texture2D> FlatRingOceanGeode::createNoiseMap(unsigned int siz
 osg::Program* FlatRingOceanGeode::createShader()
 {
 	std::string shaderName = "flatRingOcean_surface";
-	std::string vertFile = "flatRingWater.vert";
-	std::string fragmentFile = "flatRingWater.frag";
-
+	std::string vertFile = "flatRingWaterDebug.vert";
+	std::string fragmentFile = "flatRingWaterDebug.frag";
+	if (getVideoCardState())
+	{
+		vertFile = "flatRingWater.vert";
+		fragmentFile = "flatRingWaterDebug.frag";
+	}
 	return osgOcean::ShaderManager::instance().createProgram(shaderName, vertFile, fragmentFile, true);
 }
 
@@ -728,6 +733,11 @@ osg::Texture2D* FlatRingOceanGeode::getTexture2DFrame(unsigned int index)
 }
 void FlatRingOceanGeode::buildWaveTextures()
 {
+	//如果显卡有问题，就不运行如下内容
+	//2020_5_19在另一张显卡上测试时会出现textureCube导致的INVALID_OPERATION，不知道什么原因
+	if (!getVideoCardState())
+		return;
+
 	osgOcean::FFTSimulation FFTSim(getTileSize(),getWindDirection(),getWindSpeed(),_depth ,_reflDampFactor,_noiseWaveScale, _noiseTileRes,_cycleTime);
 
 	_texturesFrame.clear();
@@ -762,6 +772,18 @@ void FlatRingOceanGeode::buildWaveTextures()
 	}
 	getStateSet()->addUniform(waveTexUnif.get());
 	_isWaveDirty = false;
+}
+bool FlatRingOceanGeode::getVideoCardState()
+{
+	return _isCardNoWarning;
+}
+void FlatRingOceanGeode::setVideoCardState(bool on)
+{
+	if (_isCardNoWarning == on)
+		return;
+	_isCardNoWarning = on;
+	_isStateDirty = true;
+	_isWaveDirty = true;
 }
 osg::Texture2D* FlatRingOceanGeode::convertToR32F(const osgOcean::OceanTile hf)
 {
