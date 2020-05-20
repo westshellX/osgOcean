@@ -485,9 +485,9 @@ namespace osgOcean
             if(_lightID == id)
 				return;
 			_lightID=id;
-			if(_farOceanSurfaceGeode.valid())
+	/*		if(_farOceanSurfaceGeode.valid())
 				_farOceanSurfaceGeode->setLightID(id);
-			
+	*/		
             _isDirty = true;
         }
 

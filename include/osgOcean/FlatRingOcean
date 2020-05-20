@@ -72,12 +72,13 @@ namespace osgOcean
 		}
 		inline osg::Vec2 getCenterPoint() { return _centerPoint; }
 
-		inline void setLightID(unsigned int id) {
+/*		inline void setLightID(unsigned int id) {
 			if (_lightID == id)
 				return;
 			_lightID = id;
 			getOrCreateStateSet()->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
 		}
+		*/
 		void setLightColor(const osg::Vec4f& color);
 		osg::Vec4 getLightColor();
 
@@ -149,7 +150,7 @@ namespace osgOcean
 
 		osg::Texture2D* createTexture(const std::string& path, osg::Texture::WrapMode wrap);
 
-		inline void setFogColor(osg::Vec4 color)
+/*		inline void setFogColor(osg::Vec4 color)
 		{
 			if (_aboveWaterFogColor == color)
 				return;
@@ -166,7 +167,7 @@ namespace osgOcean
 			_isStateDirty=true;
 		}
 		inline float getFogDensity() { return _aboveWaterFogDensity; }
-
+*/
 		void createOceanGeometry();
 
 		void computeVertices();
@@ -272,7 +273,7 @@ namespace osgOcean
 		bool _enableReflections;
 		bool _enableRefractions;
 
-		unsigned int _lightID;
+//		unsigned int _lightID;
 		bool _useCrestFoam;
 		float       _foamCapTop;            /**< Maximum height for foam caps. */
 		float       _foamCapBottom;         /**< Minimum height for foam caps. */
@@ -285,8 +286,9 @@ namespace osgOcean
 		float        _noiseWaveScale;       /**< Wave scale modifier for noise tile. */
 		float        _depth;                /**< Depth (m). */
 		float        _reflDampFactor;       /**< Dampen waves going against the wind */
-		float _aboveWaterFogDensity;
+/*		float _aboveWaterFogDensity;
 		osg::Vec4f _aboveWaterFogColor;
+		*/
 		unsigned int _NUMFRAMES;      /**< Number of frames in the animation cycle */
 		float        _cycleTime;            /**< Time before the ocean tiles loop. */
 		float        _choppyFactor;         /**< Amount of chop to add. */

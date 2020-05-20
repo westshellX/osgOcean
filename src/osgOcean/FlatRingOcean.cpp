@@ -30,7 +30,7 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	, _waveBottomColor(0.11372549019f, 0.219607843f, 0.3568627450f)
 	, _enableReflections(false)
 	,_enableRefractions(false)
-	, _lightID(0)
+	//, _lightID(0)
 	,_useCrestFoam(false),
 	_foamCapBottom(2.2f),
 	_foamCapTop(3.0f),
@@ -43,8 +43,8 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 	_noiseWaveScale(1e-8),
 	_depth(1000.0),
 	_reflDampFactor(0.35),
-	_aboveWaterFogDensity(0.0012f),
-	_aboveWaterFogColor(osg::Vec4(199/255.0, 226/255.0, 255/255.0,1.0)),
+	//_aboveWaterFogDensity(0.0012f),
+	//_aboveWaterFogColor(osg::Vec4(199/255.0, 226/255.0, 255/255.0,1.0)),
 	_NUMFRAMES(256),
 	_cycleTime(10),
 	_choppyFactor(-2.5),
@@ -66,8 +66,8 @@ FlatRingOceanGeode::FlatRingOceanGeode(float w, float out, unsigned int cSteps, 
 		osg::ref_ptr<FlatRingOceanGeodeCallback> _callback = new FlatRingOceanGeodeCallback;
 		setEventCallback(new OceanAnimationEventHandler);
 		setUpdateCallback(_callback.get());
-		//setCullCallback(_callback.get());
-		osgOcean::ShaderManager::instance().setGlobalDefinition("osgOcean_LightID", _lightID);
+		setCullCallback(_callback.get());
+		//osgOcean::ShaderManager::instance().setGlobalDefinition("osgOcean_LightID", _lightID);
 }
 
 FlatRingOceanGeode::~FlatRingOceanGeode()
@@ -134,7 +134,7 @@ void FlatRingOceanGeode::createOceanGeometry()
 }
 void FlatRingOceanGeode::computePrimitives()
 {
-	return;
+	//return;
 	// First clear old primitive sets
 	if (_geom->getNumPrimitiveSets() > 0)
 		_geom->removePrimitiveSet(0, _geom->getNumPrimitiveSets());
@@ -166,11 +166,11 @@ void FlatRingOceanGeode::computeVertices()
 
 	unsigned int ptr = 0;
 
-	double x, y, z, R, sin_t, cos_t;
-	double thetaDelta = 2 * osg::PI / getCircleSteps();
-	double RDelta = (getOutR() - getInR()) / getRSteps();
+	float x, y, z, R, sin_t, cos_t;
+	float thetaDelta = 2 * osg::PI / getCircleSteps();
+	float RDelta = (getOutR() - getInR()) / getRSteps();
 
-	double scale;
+	float scale;
 
 	for (unsigned int i = 0; i <= getRSteps(); i++)
 	{
@@ -201,11 +201,12 @@ void FlatRingOceanGeode::initStateSet()
 	osg::notify(osg::INFO) << "FlatRingOcean::initStateSet()" << std::endl;
 	_stateset = new osg::StateSet;
 
-	_stateset->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
+	/*_stateset->getOrCreateUniform("osgOcean_LightID", osg::Uniform::UNSIGNED_INT)->set(_lightID);
 	const float LOG2E = 1.442695;
 
 	_stateset->getOrCreateUniform("osgOcean_AboveWaterFogDensity", osg::Uniform::Type::FLOAT)->set(-_aboveWaterFogDensity * _aboveWaterFogDensity*LOG2E);
-	_stateset->getOrCreateUniform("osgOcean_AboveWaterFogColor", osg::Uniform::Type::FLOAT_VEC4)->set(_aboveWaterFogColor);
+	_stateset->getOrCreateUniform("osgOcean_AboveWaterFogColor", osg::Uniform::Type::FLOAT_VEC4)->set(_aboveWaterFogColor);*/
+	
 	// Note that we will only set the textures in the state set if shaders are
 	// enabled, otherwise the fixed pipeline will try to put the env map onto
 	// the water surface, which has no texture coordinates, so the surface
@@ -265,8 +266,8 @@ void FlatRingOceanGeode::initStateSet()
 
 	osg::ref_ptr<osg::Program> program = createShader();
 
-	//if (program.valid())
-	//	_stateset->setAttributeAndModes(program.get(), osg::StateAttribute::ON);
+	if (program.valid())
+		_stateset->setAttributeAndModes(program.get(), osg::StateAttribute::ON);
 
 	// If shaders are enabled, the final color will be determined by the 
 	// shader so we need a white base color. But on the fixed pipeline the
