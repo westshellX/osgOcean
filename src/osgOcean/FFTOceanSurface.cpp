@@ -86,7 +86,7 @@ FFTOceanSurface::FFTOceanSurface( unsigned int FFTGridSize,
 	setUserData( new OceanDataType(*this, _NUMFRAMES, 25) );
 	setCullCallback( new OceanAnimationCallback );
 	setUpdateCallback( new OceanAnimationCallback );
-	setEventCallback(new OceanAnimationEventHandler);
+	//setEventCallback(new OceanAnimationEventHandler);
 }
 
 FFTOceanSurface::FFTOceanSurface( const FFTOceanSurface& copy, const osg::CopyOp& copyop ):

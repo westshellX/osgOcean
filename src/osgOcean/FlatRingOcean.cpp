@@ -357,7 +357,8 @@ void FlatRingOceanGeode::updateOcean(const osg::Vec3f& eye,const double& dt,unsi
 	getStateSet()->getUniform("osgOcean_NoiseCoords0")->set(computeNoiseCoords(32.f, osg::Vec2f(2.f, 4.f), 2.f, time));
 	getStateSet()->getUniform("osgOcean_NoiseCoords1")->set(computeNoiseCoords(8.f, osg::Vec2f(-4.f, 2.f), 1.f, time));
 	
-	getStateSet()->getUniform("currentFrame")->set(int(frame));
+	int frameTemp = frame;
+	getStateSet()->getUniform("currentFrame")->set(frameTemp);
 
 	if (updateCenterPoint(eye))
 	{
