@@ -332,7 +332,7 @@ osg::Program* FlatRingOceanGeode::createShader()
 {
 	std::string shaderName = "flatRingOcean_surface";
 	std::string vertFile = "flatRingWaterDebug.vert";
-	std::string fragmentFile = "flatRingWaterDebug.frag";
+	std::string fragmentFile = "flatRingWater.frag";
 	if (getVideoCardState())
 	{
 		vertFile = "flatRingWater.vert";
