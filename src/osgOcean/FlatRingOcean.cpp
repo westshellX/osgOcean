@@ -331,11 +331,12 @@ osg::ref_ptr<osg::Texture2D> FlatRingOceanGeode::createNoiseMap(unsigned int siz
 osg::Program* FlatRingOceanGeode::createShader()
 {
 	std::string shaderName = "flatRingOcean_surface";
-	std::string vertFile = "flatRingWaterDebug.vert";
+	std::string vertFile = "flatRingWater.vert";
 	std::string fragmentFile = "flatRingWater.frag";
 	if (getVideoCardState())
 	{
-		vertFile = "flatRingWater.vert";
+		shaderName = "flatRingOcean_surfaceDebug";
+		vertFile = "flatRingWaterDebug.vert";
 		fragmentFile = "flatRingWaterDebug.frag";
 	}
 	return osgOcean::ShaderManager::instance().createProgram(shaderName, vertFile, fragmentFile, true);
