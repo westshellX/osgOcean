@@ -58,9 +58,13 @@ public:
 	}
 	void setDefaultShader(bool on=true);
 
+	void setReverseZ(bool on=true);
+	bool getReverseZ();
+
 private:
-	osg::ref_ptr<osg::Program> createShader();  
+	osg::Program* createShader();  
 	bool _isDefaultShader;
+	bool _posZReverse;     //是否反转osg::TextureCubeMap::POSITIVE_Z和osg::TextureCubeMap::NEGATIVE_Z
 };
 }
 #endif

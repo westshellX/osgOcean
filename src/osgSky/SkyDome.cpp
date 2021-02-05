@@ -29,6 +29,7 @@ class UniformFogDensityCallback : public osg::Uniform::Callback
 
 SkyDome::SkyDome( void )
 	:_isDefaultShader(true)
+	,_posZReverse(false)
 {
     
 }
@@ -70,7 +71,7 @@ void SkyDome::setupStateSet( osg::TextureCubeMap* cubemap )
     ss->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 	if(cubemap)
 		ss->setTextureAttributeAndModes( 0, cubemap, osg::StateAttribute::ON );
-	ss->setAttributeAndModes(createShader().get(), osg::StateAttribute::ON);
+	ss->setAttributeAndModes(createShader(), osg::StateAttribute::ON);
 
 	ss->addUniform(new osg::Uniform("uEnvironmentMap",0));
 	ss->addUniform(new osg::Uniform("aboveWaterFogColor",osg::Vec4(1.0,1.0,1.0,1.0)));
@@ -78,7 +79,7 @@ void SkyDome::setupStateSet( osg::TextureCubeMap* cubemap )
 	ss->addUniform(new osg::Uniform("aboveWaterFogDensity",fogDensity));
 }
 
-osg::ref_ptr<osg::Program> SkyDome::createShader()
+osg::Program* SkyDome::createShader()
 {
 	std::string sky_vertex = "skydome.vert";
 	std::string sky_fragment = "skydome.frag";
@@ -94,16 +95,30 @@ osg::ref_ptr<osg::Program> SkyDome::createShader()
 			"    vTexCoord = gl_Vertex.xyz;\n"
 			"    gl_FogFragCoord=gl_Position.z;\n"
 			"}\n";
-
-		sky_fragment =
-			"uniform samplerCube uEnvironmentMap;\n"
-			"varying vec3 vTexCoord;\n"
-			"\n"
-			"void main(void)\n"
-			"{\n"
-			"    vec3 tex = vec3(vTexCoord.x, vTexCoord.y, -vTexCoord.z);\n"
-			"    gl_FragColor = textureCube( uEnvironmentMap, tex.xzy );\n"
-			"}\n";
+		if (_posZReverse)
+		{
+			sky_fragment =
+				"uniform samplerCube uEnvironmentMap;\n"
+				"varying vec3 vTexCoord;\n"
+				"\n"
+				"void main(void)\n"
+				"{\n"
+				"    vec3 tex = vec3(vTexCoord.x, vTexCoord.y, -vTexCoord.z);\n"
+				"    gl_FragColor = textureCube( uEnvironmentMap, tex.xzy );\n"
+				"}\n";
+		}
+		else
+		{
+			sky_fragment =
+				"uniform samplerCube uEnvironmentMap;\n"
+				"varying vec3 vTexCoord;\n"
+				"\n"
+				"void main(void)\n"
+				"{\n"
+				"    vec3 tex = vec3(vTexCoord.x, vTexCoord.y, vTexCoord.z);\n"
+				"    gl_FragColor = textureCube( uEnvironmentMap, tex.xzy );\n"
+				"}\n";
+		}
 	}
 
 	return osgOcean::ShaderManager::instance().createProgram("sky_dome_shader", sky_vertex, sky_fragment, !_isDefaultShader);
@@ -113,5 +128,16 @@ void SkyDome::setDefaultShader(bool on)
 	//if (_isDefaultShader == on)
 	//	return;
 	_isDefaultShader = on;
-	getOrCreateStateSet()->setAttributeAndModes(createShader().get(), osg::StateAttribute::ON);
+	getOrCreateStateSet()->setAttributeAndModes(createShader(), osg::StateAttribute::ON);
+}
+void SkyDome::setReverseZ(bool value)
+{
+	if (_posZReverse == value)
+		return;
+	_posZReverse = value;
+	getOrCreateStateSet()->setAttributeAndModes(createShader(), osg::StateAttribute::ON);
+}
+bool SkyDome::getReverseZ()
+{
+	return _posZReverse;
 }
