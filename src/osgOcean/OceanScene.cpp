@@ -610,6 +610,7 @@ void OceanScene::update( osg::NodeVisitor& nv )
 
 void OceanScene::preRenderCull( osgUtil::CullVisitor& cv, bool eyeAboveWater, bool surfaceVisible )
 {
+#define USE_MAINCAMERA     //2021_3_1 如果有slaveCamera时，采用mainCamera可以防止画面在多个camera间跳跃
 	// Above water
 	if( eyeAboveWater )
 	{
@@ -621,9 +622,13 @@ void OceanScene::preRenderCull( osgUtil::CullVisitor& cv, bool eyeAboveWater, bo
 			_oceanSurface.valid() && _reflectionCamera.valid() )
 		{
 			// update reflection camera and render reflected scene
+#ifdef USE_MAINCAMERA
+			_reflectionCamera->setViewMatrix(_reflectionMatrix * cv.getRenderStage()->getCamera()->getViewMatrix());
+			_reflectionCamera->setProjectionMatrix(cv.getRenderStage()->getCamera()->getProjectionMatrix());
+#else
 			_reflectionCamera->setViewMatrix( _reflectionMatrix * cv.getCurrentCamera()->getViewMatrix() );
 			_reflectionCamera->setProjectionMatrix( cv.getCurrentCamera()->getProjectionMatrix() );
-
+#endif
 			cv.pushStateSet(_globalStateSet.get());
 			_reflectionCamera->accept( cv );
 			cv.popStateSet();
@@ -632,9 +637,14 @@ void OceanScene::preRenderCull( osgUtil::CullVisitor& cv, bool eyeAboveWater, bo
 		if( _enableGlare )
 		{
 			// set view and projection to match main camera
+#ifdef USE_MAINCAMERA
+			_glarePasses.at(0)->setViewMatrix(cv.getRenderStage()->getCamera()->getViewMatrix());
+			_glarePasses.at(0)->setProjectionMatrix(cv.getRenderStage()->getCamera()->getProjectionMatrix());
+#else
 			_glarePasses.at(0)->setViewMatrix( cv.getCurrentCamera()->getViewMatrix() );
 			_glarePasses.at(0)->setProjectionMatrix( cv.getCurrentCamera()->getProjectionMatrix() );
 
+#endif
 			for( unsigned int i=0; i<_glarePasses.size()-1; ++i )
 			{
 				_glarePasses.at(i)->accept(cv);
@@ -652,8 +662,13 @@ void OceanScene::preRenderCull( osgUtil::CullVisitor& cv, bool eyeAboveWater, bo
 			_oceanSurface.valid() && _refractionCamera.valid() )
 		{
 			// update refraction camera and render refracted scene
+#ifdef USE_MAINCAMERA
+			_refractionCamera->setViewMatrix(cv.getRenderStage()->getCamera()->getViewMatrix());
+			_refractionCamera->setProjectionMatrix(cv.getRenderStage()->getCamera()->getProjectionMatrix());
+#else
 			_refractionCamera->setViewMatrix( cv.getCurrentCamera()->getViewMatrix() );
 			_refractionCamera->setProjectionMatrix( cv.getCurrentCamera()->getProjectionMatrix() );
+#endif
 			cv.pushStateSet(_globalStateSet.get());
 			_refractionCamera->accept( cv );
 			cv.popStateSet();
@@ -662,17 +677,26 @@ void OceanScene::preRenderCull( osgUtil::CullVisitor& cv, bool eyeAboveWater, bo
 		if( _enableGodRays && _godrayPreRender.valid() )
 		{
 			// Render the god rays to texture
+#ifdef USE_MAINCAMERA
+			_godrayPreRender->setViewMatrix(cv.getRenderStage()->getCamera()->getViewMatrix());
+			_godrayPreRender->setProjectionMatrix(cv.getRenderStage()->getCamera()->getProjectionMatrix());
+#else
 			_godrayPreRender->setViewMatrix( cv.getCurrentCamera()->getViewMatrix() );
 			_godrayPreRender->setProjectionMatrix( cv.getCurrentCamera()->getProjectionMatrix() );
+#endif
 			_godrayPreRender->accept( cv );
 		}
 
 		if( _enableDOF )
 		{
 			// set view and projection to match main camera
+#ifdef USE_MAINCAMERA
+			_dofPasses.at(0)->setViewMatrix(cv.getRenderStage()->getCamera()->getViewMatrix());
+			_dofPasses.at(0)->setProjectionMatrix(cv.getRenderStage()->getCamera()->getProjectionMatrix());
+#else
 			_dofPasses.at(0)->setViewMatrix( cv.getCurrentCamera()->getViewMatrix() );
 			_dofPasses.at(0)->setProjectionMatrix( cv.getCurrentCamera()->getProjectionMatrix() );
-
+#endif
 			// pass the cull visitor down the chain
 			for(unsigned int i = 0; i<_dofPasses.size()-1; ++i)
 			{
