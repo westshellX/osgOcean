@@ -780,7 +780,7 @@ int main(int argc, char *argv[])
     osg::ref_ptr<SceneModel> scene = new SceneModel(windDirection, windSpeed, depth, reflectionDamping, scale, isChoppy, choppyFactor, crestFoamHeight);
 	
 	//different size between screenDim and windowsize better for effect comparing in _enableGlare or not 
-	//scene->getOceanScene()->setScreenDims(osg::Vec2s(1024, 768));
+	scene->getOceanScene()->setScreenDims(osg::Vec2s(1024, 768));
     
     if (disableShaders)
     {
