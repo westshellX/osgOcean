@@ -380,6 +380,7 @@ public:
                 // create sky dome and add to ocean scene
                 // set masks so it appears in reflected scene and normal scene
                 _skyDome = new osgSky::SkyDome( 1900.f, 16, 16, _cubemap.get() );
+                _skyDome->setReverseZ();
                 _skyDome->setNodeMask( _oceanScene->getReflectedSceneMask() | _oceanScene->getNormalSceneMask() );
 
                 // add a pat to track the camera
