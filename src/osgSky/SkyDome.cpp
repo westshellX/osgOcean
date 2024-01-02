@@ -116,7 +116,7 @@ osg::Program* SkyDome::createShader()
 				"void main(void)\n"
 				"{\n"
 				"    vec3 tex = vec3(vTexCoord.x, vTexCoord.y, vTexCoord.z);\n"
-				"    gl_FragColor = textureCube( uEnvironmentMap, tex.xzy );\n"
+				"    gl_FragColor = textureCube( uEnvironmentMap, tex.xyz );\n"
 				"}\n";
 		}
 	}
