@@ -2,25 +2,25 @@
 #include <string>
 #include <stdio.h>
 
-const char* osgOceanGetVersion()
+const char* osgSkyGetVersion()
 {
-    static char ocean_version[256];
-    static int ocean_version_init = 1;
+    static char sky_version[256];
+    static int sky_version_init = 1;
     
-    if( ocean_version_init )
+    if( sky_version_init )
     {
         if( OSGSKY_VERSION_REVISION == 0 )
-            sprintf( ocean_version, "%d.%d.%d", OSGSKY_VERSION_MAJOR, OSGSKY_VERSION_MINOR, OSGSKY_VERSION_RELEASE );
+            sprintf( sky_version, "%d.%d.%d", OSGSKY_VERSION_MAJOR, OSGSKY_VERSION_MINOR, OSGSKY_VERSION_RELEASE );
         else
-            sprintf( ocean_version, "%d.%d.%d-%d", OSGSKY_VERSION_MAJOR, OSGSKY_VERSION_MINOR, OSGSKY_VERSION_RELEASE, OSGSKY_VERSION_REVISION );
+            sprintf( sky_version, "%d.%d.%d-%d", OSGSKY_VERSION_MAJOR, OSGSKY_VERSION_MINOR, OSGSKY_VERSION_RELEASE, OSGSKY_VERSION_REVISION );
 
-        ocean_version_init = 0;
+        sky_version_init = 0;
     }
     
-    return ocean_version;
+    return sky_version;
 }
 
-const char* osgOceanGetLibraryName()
+const char* osgSkyGetLibraryName()
 {
     return "osgOcean Library";
 }
