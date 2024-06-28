@@ -48,6 +48,11 @@ public:
 		if(cubemap)
 		getOrCreateStateSet()->setTextureAttributeAndModes( 0, cubemap, osg::StateAttribute::ON );
 	}
+	inline void setWaterCubeMap(osg::TextureCubeMap* cubemap)
+	{
+		if (cubemap)
+			getOrCreateStateSet()->setTextureAttributeAndModes(1, cubemap, osg::StateAttribute::ON);
+	}
 	inline void setFogColor(osg::Vec4 color)
 	{
 		getOrCreateStateSet()->getOrCreateUniform("aboveWaterFogColor",osg::Uniform::FLOAT_VEC4)->set(color);
